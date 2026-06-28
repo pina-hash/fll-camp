@@ -4,8 +4,8 @@ import Evidence from './Evidence.jsx';
 
 // One self-check criterion, rendered by its type. All four types report
 // completion the same way (isCriterionSatisfied) so the gate stays consistent.
-export default function Criterion({ ladderId, questId, idx, def, st, actions }) {
-  const satisfied = isCriterionSatisfied(def, st);
+export default function Criterion({ ladderId, questId, idx, def, st, actions, deviceCanCapture }) {
+  const satisfied = isCriterionSatisfied(def, st, deviceCanCapture);
 
   switch (def.type) {
     case 'check':
@@ -46,6 +46,7 @@ export default function Criterion({ ladderId, questId, idx, def, st, actions }) 
           st={st}
           captureEvidence={actions.captureEvidence}
           getEvidenceUrl={actions.getEvidenceUrl}
+          deviceCanCapture={deviceCanCapture}
         />
       );
     default:

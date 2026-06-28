@@ -4,7 +4,16 @@ import Modal from './Modal.jsx';
 // Team menu: rename the team or switch track. Switching track only changes
 // which ladder is active — each track's progress is stored separately and is
 // never lost.
-export default function Menu({ team, activeLadder, onRename, onSwitchTrack, onOpenMentorResources, onClose }) {
+export default function Menu({
+  team,
+  activeLadder,
+  onRename,
+  onSwitchTrack,
+  deviceCanCapture,
+  onSetDeviceCanCapture,
+  onOpenMentorResources,
+  onClose,
+}) {
   const [name, setName] = useState(team?.name ?? '');
   const trimmed = name.trim();
   const dirty = trimmed.length > 0 && trimmed !== team?.name;
@@ -56,6 +65,25 @@ export default function Menu({ team, activeLadder, onRename, onSwitchTrack, onOp
           <span className="track-card__desc">9 quests · Bronze → Platinum</span>
         </button>
       </div>
+
+      <hr className="menu__divider" />
+
+      <div className="toggle-row">
+        <span className="toggle-row__label">This device can film the robot</span>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={deviceCanCapture}
+          className={`switch ${deviceCanCapture ? 'switch--on' : ''}`}
+          onClick={() => onSetDeviceCanCapture(!deviceCanCapture)}
+        >
+          <span className="switch__knob" aria-hidden="true" />
+        </button>
+      </div>
+      <p className="menu__note">
+        When off, filming a clip is optional and never blocks a quest. Turn on for iPads or
+        phones with a camera.
+      </p>
 
       <hr className="menu__divider" />
 

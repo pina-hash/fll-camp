@@ -188,6 +188,7 @@ export default function App() {
           status={team.questStatus(ladderId, selectedQuestId)}
           criteria={team.criteriaFor(ladderId, selectedQuestId)}
           actions={questActions}
+          deviceCanCapture={state.deviceCanCapture}
           onClose={() => setSelectedQuestId(null)}
         />
       )}
@@ -206,6 +207,8 @@ export default function App() {
           activeLadder={ladderId}
           onRename={handleRename}
           onSwitchTrack={handleSwitchTrack}
+          deviceCanCapture={state.deviceCanCapture}
+          onSetDeviceCanCapture={team.setDeviceCanCapture}
           onOpenMentorResources={() => {
             window.location.hash = MENTOR_ROUTE;
             setShowMenu(false);

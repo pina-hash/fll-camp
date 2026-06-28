@@ -37,6 +37,25 @@ function emptyLadder(ladderId) {
   return base;
 }
 
+/**
+ * Light heuristic for the INITIAL value of deviceCanCapture (per device). The
+ * menu toggle is the real source of truth and overrides this. True on
+ * iPad/iPhone/Android or touch devices with a coarse pointer; false otherwise
+ * (desktop/Windows).
+ */
+function detectCanCapture() {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  if (/iPhone|iPad|iPod|Android/i.test(ua)) return true;
+  // iPadOS 13+ reports as "Macintosh" but has touch points.
+  if (/Macintosh/.test(ua) && (navigator.maxTouchPoints || 0) > 1) return true;
+  if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    if (coarse && (navigator.maxTouchPoints || 0) > 0) return true;
+  }
+  return false;
+}
+
 export function defaultState() {
   return {
     version: STATE_VERSION,
@@ -47,6 +66,10 @@ export function defaultState() {
       veteran: emptyLadder('veteran'),
     },
     needsMentor: false,
+    // Per-device setting (top level, sibling to team/ladders): does THIS device
+    // have a camera to film the robot? When false, evidence criteria are
+    // optional (non-gating). The menu toggle overrides this initial guess.
+    deviceCanCapture: detectCanCapture(),
     events: [], // append-only — see appendEvent()
   };
 }
@@ -97,6 +120,9 @@ function normalize(loaded) {
       veteran: { ...emptyLadder('veteran'), ...(loaded.ladders?.veteran ?? {}) },
     },
     needsMentor: Boolean(loaded.needsMentor),
+    // Preserve a previously-saved device setting; otherwise seed from heuristic.
+    deviceCanCapture:
+      typeof loaded.deviceCanCapture === 'boolean' ? loaded.deviceCanCapture : detectCanCapture(),
     events: Array.isArray(loaded.events) ? loaded.events : [],
   };
   if (state.activeLadder !== 'veteran') state.activeLadder = 'rookie';
@@ -106,12 +132,21 @@ function normalize(loaded) {
 
 // ---- gating / status recomputation ----------------------------------------
 
+/** Is an evidence blob actually attached? (device-independent — for hasEvidence) */
+function evidencePresent(st) {
+  return typeof st?.idbKey === 'string' && st.idbKey.length > 0;
+}
+
 /**
  * Is one criterion satisfied, given its definition (from quests.js) and its
  * stored state (from progress.criteria[idx])? This is the single source of
  * truth for completion — exported so the UI shows the same per-criterion state.
+ *
+ * `deviceCanCapture` (default true) makes evidence non-gating on no-camera
+ * devices: when false, an evidence criterion is treated as satisfied so it
+ * never blocks quest completion. A blob can still be attached optionally.
  */
-export function isCriterionSatisfied(def, st) {
+export function isCriterionSatisfied(def, st, deviceCanCapture = true) {
   if (!def) return false;
   switch (def.type) {
     case 'check':
@@ -122,7 +157,7 @@ export function isCriterionSatisfied(def, st) {
       return hits >= (def.pass ?? RUNLOG_PASS);
     }
     case 'evidence':
-      return typeof st?.idbKey === 'string' && st.idbKey.length > 0;
+      return deviceCanCapture === false ? true : evidencePresent(st);
     case 'answer':
       return typeof st?.text === 'string' && st.text.trim().length >= (def.min ?? ANSWER_MIN);
     default:
@@ -130,16 +165,22 @@ export function isCriterionSatisfied(def, st) {
   }
 }
 
-function isComplete(progress, quest) {
+function isComplete(progress, quest, deviceCanCapture) {
   if (!quest) return false;
-  return quest.criteria.every((def, idx) => isCriterionSatisfied(def, progress?.criteria?.[idx]));
+  return quest.criteria.every((def, idx) =>
+    isCriterionSatisfied(def, progress?.criteria?.[idx], deviceCanCapture)
+  );
 }
 
-/** Does this quest have at least one satisfied evidence criterion? */
+/**
+ * Does this quest have at least one evidence blob actually attached? This is
+ * device-INDEPENDENT (true only when a blob exists), so a dashboard can treat
+ * missing evidence on no-camera devices as neutral rather than incomplete.
+ */
 function computeHasEvidence(progress, quest) {
   if (!quest) return false;
   return quest.criteria.some(
-    (def, idx) => def.type === 'evidence' && isCriterionSatisfied(def, progress?.criteria?.[idx])
+    (def, idx) => def.type === 'evidence' && evidencePresent(progress?.criteria?.[idx])
   );
 }
 
@@ -177,11 +218,15 @@ function recomputeLadder(state, ladderId) {
   for (const quest of gated) {
     const prog = ensureProgress(ladderState, quest.id);
     prog.hasEvidence = computeHasEvidence(prog, quest);
-    if (isComplete(prog, quest)) {
+    if (isComplete(prog, quest, state.deviceCanCapture)) {
       prog.status = 'complete';
       if (!prog.completedAt) prog.completedAt = nowIso();
     } else {
       prog.completedAt = null;
+      // Demote a previously-complete quest so Pass 2 (which skips 'complete'
+      // quests) can recompute its availability. Reachable when a criterion is
+      // undone, or when turning deviceCanCapture back on re-requires evidence.
+      if (prog.status === 'complete') prog.status = 'available';
     }
   }
 
@@ -217,7 +262,7 @@ function recomputeLadder(state, ladderId) {
   for (const quest of optionalQuests(ladderId)) {
     const prog = ensureProgress(ladderState, quest.id);
     prog.hasEvidence = computeHasEvidence(prog, quest);
-    if (isComplete(prog, quest)) {
+    if (isComplete(prog, quest, state.deviceCanCapture)) {
       prog.status = 'complete';
       if (!prog.completedAt) prog.completedAt = nowIso();
     } else {
@@ -408,6 +453,19 @@ export function toggleMentor(state) {
   const next = clone(state);
   next.needsMentor = !next.needsMentor;
   appendEvent(next, next.needsMentor ? 'mentor_requested' : 'mentor_cleared');
+  return next;
+}
+
+/**
+ * Set the per-device camera setting (source of truth, overrides the heuristic).
+ * Recomputes both ladders because evidence gating depends on it: turning it off
+ * can complete quests that only lacked evidence; turning it on re-requires it.
+ * No event — this is a device setting, not a gate action.
+ */
+export function setDeviceCanCapture(state, value) {
+  const next = clone(state);
+  next.deviceCanCapture = !!value;
+  recomputeAll(next);
   return next;
 }
 

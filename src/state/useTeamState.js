@@ -23,6 +23,7 @@ import {
   setAnswer,
   setEvidence,
   toggleMentor,
+  setDeviceCanCapture,
   signOff,
   isMentorCode,
   pendingSignoff,
@@ -85,6 +86,7 @@ export function useTeamState() {
       },
 
       toggleMentor: () => commit(toggleMentor),
+      setDeviceCanCapture: (value) => commit((s) => setDeviceCanCapture(s, value)),
       // Validate synchronously (code-only, no state needed) so the boolean
       // return is reliable; persist only on success via the single write point.
       signOff: (toTier, code) => {

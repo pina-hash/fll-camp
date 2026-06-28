@@ -5,7 +5,7 @@ import { resourceFor, ATTRIBUTION } from '../state/resources.js';
 // Quest detail overlay: an in-app micro-lesson (primary teaching), an optional
 // "Go deeper" deep link (secondary), then the typed self-check gate. Locked
 // quests explain how to unlock instead of showing the gate.
-export default function QuestDetail({ quest, ladderId, status, criteria, actions, onClose }) {
+export default function QuestDetail({ quest, ladderId, status, criteria, actions, deviceCanCapture, onClose }) {
   if (!quest) return null;
   const locked = status === 'locked';
   const complete = status === 'complete';
@@ -61,6 +61,7 @@ export default function QuestDetail({ quest, ladderId, status, criteria, actions
                   def={def}
                   st={criteria[idx]}
                   actions={actions}
+                  deviceCanCapture={deviceCanCapture}
                 />
               </li>
             ))}

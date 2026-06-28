@@ -76,6 +76,22 @@ answer   def { type:'answer', label, min }                     (default min=8)
          st  { type:'answer', text }                           satisfied: trim().length >= min
 ```
 
+**Device camera setting — `deviceCanCapture` (top-level, per device).** A boolean
+sibling of `team`/`ladders`/`events`, so it is per-browser and survives team and
+ladder switches. Seeded by a light heuristic (`detectCanCapture`: true on
+iPad/iPhone/Android or coarse-pointer touch devices, false on desktop/Windows);
+the menu toggle "This device can film the robot" is the source of truth and
+overrides the heuristic (`setDeviceCanCapture`).
+
+When `deviceCanCapture === false`, `isCriterionSatisfied` returns `true` for every
+`evidence` criterion, so evidence is **non-gating** — it never blocks completion,
+the AND-gate and "finish every step" footer skip it, and it renders as clearly
+**optional** (muted, capture still available so a laptop webcam can attach). When
+`true`, evidence works as built (required, gating, IndexedDB capture). The derived
+`hasEvidence` flag stays device-INDEPENDENT (true only when a blob actually
+exists), so a dashboard treats missing evidence on no-camera devices as neutral,
+not stuck. Toggling the setting recomputes both ladders.
+
 ### Persistence schema
 
 `localStorage` key: **`fll-camp-state-v2`** (`STATE_VERSION = 'v2'`). On load, any
@@ -92,6 +108,7 @@ stray v1 blob is simply ignored.
     veteran: { progress: { [questId]: ProgressEntry }, tier: TierField }
   },
   needsMentor: boolean,
+  deviceCanCapture: boolean,                 // per-device; false => evidence non-gating
   events: Event[]                            // append-only
 }
 

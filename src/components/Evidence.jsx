@@ -3,7 +3,16 @@ import { useEffect, useRef, useState } from 'react';
 // Evidence criterion: capture a photo (static builds) or short video (motion /
 // scoring) with the device camera. The blob is stored in IndexedDB via the
 // hook; here we only show a thumbnail + Retake and surface friendly errors.
-export default function Evidence({ ladderId, questId, idx, def, st, captureEvidence, getEvidenceUrl }) {
+export default function Evidence({
+  ladderId,
+  questId,
+  idx,
+  def,
+  st,
+  captureEvidence,
+  getEvidenceUrl,
+  deviceCanCapture,
+}) {
   const inputRef = useRef(null);
   const [url, setUrl] = useState(null);
   const [error, setError] = useState('');
@@ -11,6 +20,9 @@ export default function Evidence({ ladderId, questId, idx, def, st, captureEvide
 
   const idbKey = st?.idbKey;
   const isVideo = def.media === 'video';
+  // On a no-camera device with nothing attached yet, evidence is optional:
+  // muted, non-gating, no incomplete pressure — but still capturable.
+  const optional = deviceCanCapture === false && !idbKey;
 
   // Resolve a preview URL for the stored blob; revoke it on change/unmount.
   useEffect(() => {
@@ -50,13 +62,18 @@ export default function Evidence({ ladderId, questId, idx, def, st, captureEvide
   }
 
   return (
-    <div className={`evidence ${idbKey ? 'evidence--has' : ''}`}>
+    <div className={`evidence ${idbKey ? 'evidence--has' : ''} ${optional ? 'evidence--optional' : ''}`}>
       <div className="evidence__row">
         <span className="evidence__icon" aria-hidden="true">
           {idbKey ? '✓' : isVideo ? '🎬' : '📷'}
         </span>
         <span className="evidence__label">{def.label}</span>
+        {optional && <span className="evidence__tag">Optional</span>}
       </div>
+
+      {optional && (
+        <p className="evidence__optional">Optional — add a clip if you have a camera device.</p>
+      )}
 
       {url &&
         (isVideo ? (
@@ -76,11 +93,21 @@ export default function Evidence({ ladderId, questId, idx, def, st, captureEvide
 
       <button
         type="button"
-        className={`btn ${idbKey ? 'btn--ghost' : 'btn--primary'} evidence__btn`}
+        className={`btn ${idbKey || optional ? 'btn--ghost' : 'btn--primary'} evidence__btn`}
         onClick={() => inputRef.current?.click()}
         disabled={busy}
       >
-        {busy ? 'Saving…' : idbKey ? 'Retake' : isVideo ? 'Record a clip' : 'Take a photo'}
+        {busy
+          ? 'Saving…'
+          : idbKey
+            ? 'Retake'
+            : optional
+              ? isVideo
+                ? 'Add a clip (optional)'
+                : 'Add a photo (optional)'
+              : isVideo
+                ? 'Record a clip'
+                : 'Take a photo'}
       </button>
 
       {error && <p className="evidence__error">{error}</p>}
