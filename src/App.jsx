@@ -1,0 +1,192 @@
+import { useEffect, useState } from 'react';
+import { useTeamState } from './state/useTeamState.js';
+import { getQuest } from './state/quests.js';
+import Onboarding from './components/Onboarding.jsx';
+import Climb from './components/Climb.jsx';
+import QuestDetail from './components/QuestDetail.jsx';
+import Troubleshooter from './components/Troubleshooter.jsx';
+import MentorGate from './components/MentorGate.jsx';
+import Menu from './components/Menu.jsx';
+import DailyRhythm from './components/DailyRhythm.jsx';
+
+const TRACK_LABELS = { rookie: 'Rookie', veteran: 'Veteran' };
+const TIER_LABELS = {
+  none: 'Bronze',
+  bronze: 'Bronze',
+  silver: 'Silver',
+  gold: 'Gold',
+  platinum: 'Platinum',
+};
+
+export default function App() {
+  const team = useTeamState();
+  const {
+    state,
+    createTeam,
+    renameTeam,
+    switchTrack,
+    toggleCriterion,
+    toggleMentor,
+    signOff,
+    pendingSignoff,
+  } = team;
+
+  const [selectedQuestId, setSelectedQuestId] = useState(null);
+  const [showTroubleshooter, setShowTroubleshooter] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showGate, setShowGate] = useState(false);
+
+  // Auto-prompt the mentor gate the moment a tier's final quest is completed.
+  const pendingTier = pendingSignoff?.toTier ?? null;
+  useEffect(() => {
+    if (pendingTier) {
+      setShowGate(true);
+      setSelectedQuestId(null);
+    }
+  }, [pendingTier]);
+
+  // First run: capture team name + track before anything else.
+  if (!state.team) {
+    return <Onboarding onCreate={createTeam} />;
+  }
+
+  const ladderId = state.activeLadder;
+  const { done, total } = team.progressCounts(ladderId);
+  const currentId = team.currentQuestId(ladderId);
+  const pct = total ? Math.round((done / total) * 100) : 0;
+
+  const selectedQuest = selectedQuestId ? getQuest(ladderId, selectedQuestId) : null;
+
+  function handleRename(name) {
+    renameTeam(name);
+    setShowMenu(false);
+  }
+  function handleSwitchTrack(track) {
+    switchTrack(track);
+    setShowMenu(false);
+  }
+  function handleSignOff(code) {
+    const ok = signOff(pendingSignoff.toTier, code);
+    if (ok) setShowGate(false);
+    return ok;
+  }
+
+  return (
+    <div className="app">
+      <header className="app__header">
+        <div className="app__heading">
+          <p className="app__kicker">DBTI FLL Summer Camp · Mission Hub</p>
+          <h1 className="app__team">{state.team.name}</h1>
+          <p className="app__track">
+            {TRACK_LABELS[ladderId]} Track
+            {ladderId === 'veteran' && (
+              <> · <span className="app__tier">{TIER_LABELS[state.ladders.veteran.tier]} tier</span></>
+            )}
+          </p>
+        </div>
+        <button
+          type="button"
+          className="iconbtn"
+          onClick={() => setShowMenu(true)}
+          aria-label="Team menu"
+        >
+          ☰
+        </button>
+      </header>
+
+      <div className="app__progress">
+        <div className="progressbar" role="progressbar" aria-valuenow={done} aria-valuemin={0} aria-valuemax={total}>
+          <div className="progressbar__fill" style={{ width: `${pct}%` }} />
+        </div>
+        <p className="app__progress-label">
+          {done} / {total} quests complete
+        </p>
+      </div>
+
+      <main className="app__main">
+        {pendingSignoff && (
+          <button
+            type="button"
+            className="signoff-banner"
+            onClick={() => setShowGate(true)}
+          >
+            <span className="signoff-banner__title">
+              {pendingSignoff.fromTier.charAt(0).toUpperCase() + pendingSignoff.fromTier.slice(1)} tier
+              complete!
+            </span>
+            <span className="signoff-banner__cta">
+              Tap for the mentor sign-off to unlock {TIER_LABELS[pendingSignoff.toTier]} →
+            </span>
+          </button>
+        )}
+
+        <Climb
+          state={state}
+          ladderId={ladderId}
+          currentId={currentId}
+          onOpen={setSelectedQuestId}
+        />
+
+        <DailyRhythm />
+
+        <p className="app__footnote">Progress saves on this device automatically.</p>
+      </main>
+
+      <nav className="fab-bar" aria-label="Help">
+        <button
+          type="button"
+          className="fab fab--stuck"
+          onClick={() => setShowTroubleshooter(true)}
+        >
+          <span className="fab__icon" aria-hidden="true">🛠️</span> Stuck?
+        </button>
+        <button
+          type="button"
+          className={`fab ${state.needsMentor ? 'fab--requested' : 'fab--mentor'}`}
+          onClick={toggleMentor}
+          aria-pressed={state.needsMentor}
+        >
+          <span className="fab__icon" aria-hidden="true">{state.needsMentor ? '✓' : '✋'}</span>
+          {state.needsMentor ? 'Mentor requested' : 'Request a Mentor'}
+        </button>
+      </nav>
+
+      {selectedQuest && (
+        <QuestDetail
+          quest={selectedQuest}
+          ladderId={ladderId}
+          status={team.questStatus(ladderId, selectedQuestId)}
+          criteria={team.criteriaFor(ladderId, selectedQuestId)}
+          onToggle={(idx) => toggleCriterion(ladderId, selectedQuestId, idx)}
+          onClose={() => setSelectedQuestId(null)}
+        />
+      )}
+
+      {showTroubleshooter && (
+        <Troubleshooter
+          onClose={() => setShowTroubleshooter(false)}
+          needsMentor={state.needsMentor}
+          onRequestMentor={toggleMentor}
+        />
+      )}
+
+      {showMenu && (
+        <Menu
+          team={state.team}
+          activeLadder={ladderId}
+          onRename={handleRename}
+          onSwitchTrack={handleSwitchTrack}
+          onClose={() => setShowMenu(false)}
+        />
+      )}
+
+      {showGate && pendingSignoff && (
+        <MentorGate
+          toTier={pendingSignoff.toTier}
+          onSubmit={handleSignOff}
+          onClose={() => setShowGate(false)}
+        />
+      )}
+    </div>
+  );
+}

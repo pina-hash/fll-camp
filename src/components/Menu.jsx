@@ -1,0 +1,61 @@
+import { useState } from 'react';
+import Modal from './Modal.jsx';
+
+// Team menu: rename the team or switch track. Switching track only changes
+// which ladder is active — each track's progress is stored separately and is
+// never lost.
+export default function Menu({ team, activeLadder, onRename, onSwitchTrack, onClose }) {
+  const [name, setName] = useState(team?.name ?? '');
+  const trimmed = name.trim();
+  const dirty = trimmed.length > 0 && trimmed !== team?.name;
+
+  return (
+    <Modal title="Team Menu" onClose={onClose} size="panel" labelId="menu-title">
+      <label className="field">
+        <span className="field__label">Team Name</span>
+        <input
+          className="field__input"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={40}
+        />
+      </label>
+      <button
+        type="button"
+        className="btn btn--primary btn--block"
+        disabled={!dirty}
+        onClick={() => onRename(trimmed)}
+      >
+        Save name
+      </button>
+
+      <hr className="menu__divider" />
+
+      <p className="field__label">Track</p>
+      <p className="menu__note">
+        Switching keeps each track's progress separate — nothing is lost.
+      </p>
+      <div className="menu__tracks">
+        <button
+          type="button"
+          className={`track-card ${activeLadder === 'rookie' ? 'track-card--on' : ''}`}
+          onClick={() => onSwitchTrack('rookie')}
+          aria-pressed={activeLadder === 'rookie'}
+        >
+          <span className="track-card__name">Rookie</span>
+          <span className="track-card__desc">12 quests · 3 week-arcs</span>
+        </button>
+        <button
+          type="button"
+          className={`track-card ${activeLadder === 'veteran' ? 'track-card--on' : ''}`}
+          onClick={() => onSwitchTrack('veteran')}
+          aria-pressed={activeLadder === 'veteran'}
+        >
+          <span className="track-card__name">Veteran</span>
+          <span className="track-card__desc">9 quests · Bronze → Platinum</span>
+        </button>
+      </div>
+    </Modal>
+  );
+}

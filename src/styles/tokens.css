@@ -1,0 +1,44 @@
+/* ===========================================================================
+   BRANDING TOKENS — matches the printed camp packet.
+   Edit colors/fonts here only; components reference the variables.
+   =========================================================================== */
+:root {
+  /* Core */
+  --black: #0d0d0d;
+  --gold: #f5b800;
+  --gold-deep: #c49200;
+  --gold-pale: #fff8d6;
+  --gold-soft: #f0e080;
+
+  /* IDEA green — "go / complete" */
+  --green: #1db35a;
+  --green-dark: #167540;
+  --green-tint: #ebf7f1;
+  --green-mid: #9ecfb4;
+
+  /* Medal tiers */
+  --bronze: #c77d3a;
+  --silver: #8c9196;
+  --gold-medal: #e0a400;
+  --platinum: #5e86b0;
+
+  /* Derived surfaces */
+  --page-bg: #f6f5f1;
+  --card-bg: #ffffff;
+  --ink: #14140f;
+  --ink-soft: #5b5a52;
+  --line: #e4e2d8;
+  --locked-ink: #a8a69c;
+
+  /* Fonts */
+  --font-display: 'Oswald', 'Arial Narrow', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Layout */
+  --maxw: 680px;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --tap: 48px;
+  --shadow: 0 2px 10px rgba(13, 13, 13, 0.08);
+  --shadow-lg: 0 -6px 30px rgba(13, 13, 13, 0.18);
+}

@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# build output — never commit; the GitHub Action builds it
+dist/
+dist-ssr/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# editor / OS / tooling
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.claude/
+
+# local env
+*.local
+.env
+.env.*
