@@ -8,7 +8,25 @@
 //   Veteran : 9 quests across 4 tiers. Tiers are gated: completing the last
 //             quest of a tier requires a mentor sign-off (4-digit code) to
 //             unlock the next tier. `signoffTo` marks those boundary quests.
+//
+// CRITERION TYPES (Workstream A gate redesign). Each criterion is one of:
+//   check    { type:'check',    label }                  tickable box
+//   runlog   { type:'runlog',   label, n, pass }         log N runs, pass = hits>=pass
+//   evidence { type:'evidence', media:'photo'|'video', label }   capture to IndexedDB
+//   answer   { type:'answer',   label, min }             textarea, len>=min
+//
+// `lesson` is the in-app micro-lesson (the primary teaching; stands alone).
+// Optional "Go deeper" deep links live separately in resources.js.
 // ---------------------------------------------------------------------------
+
+import { RUNLOG_N, RUNLOG_PASS, ANSWER_MIN } from './config.js';
+
+// ---- criterion builders ---------------------------------------------------
+
+const check = (label) => ({ type: 'check', label });
+const runlog = (label, pass = RUNLOG_PASS, n = RUNLOG_N) => ({ type: 'runlog', label, n, pass });
+const answer = (label, min = ANSWER_MIN) => ({ type: 'answer', label, min });
+const evidence = (media, label) => ({ type: 'evidence', media, label });
 
 // ---- ROOKIE LADDER --------------------------------------------------------
 
@@ -19,13 +37,15 @@ export const ROOKIE_QUESTS = [
     num: 'R1',
     title: 'Build the Driving Base (review)',
     objective: 'Get a stable, standard driving base ready to roll.',
-    tip: 'Rebuild only if yours is unstable; otherwise tick and move on.',
+    lesson:
+      'A driving base is only as good as it is repeatable. Make sure both motors sit in the ports your program expects and the hub powers on green. If the base is solid, snap a photo and move on — only rebuild if it wobbles or flexes.',
     arc: 'week1',
     criteria: [
-      'Base built to the standard design',
-      'Both drive motors in the correct ports',
-      'Hub powers on green',
-      'Both wheels spin on a motor command',
+      check('Base built to the standard design'),
+      check('Both drive motors in the correct ports'),
+      check('Hub powers on green'),
+      check('Both wheels spin on a motor command'),
+      evidence('photo', 'Photo of your built base'),
     ],
   },
   {
@@ -33,12 +53,13 @@ export const ROOKIE_QUESTS = [
     num: 'R2',
     title: 'Connect and Command (review)',
     objective: 'Pair the hub and push a program to the robot.',
-    tip: 'Pair over Bluetooth or cable, then push to the hub.',
+    lesson:
+      'Connect the hub to the SPIKE app over Bluetooth or a cable, then download a tiny test program. Use a light, a sound, and a short motor spin so you can confirm the hub really heard you when you press the button.',
     arc: 'week1',
     criteria: [
-      'Hub paired to the app',
-      'A program with light, sound, and a motor spin downloaded',
-      'Robot responds when you press the button',
+      check('Hub paired to the app'),
+      check('A program with light, sound, and a motor spin downloaded'),
+      check('Robot responds when you press the button'),
     ],
   },
   {
@@ -46,12 +67,12 @@ export const ROOKIE_QUESTS = [
     num: 'R3',
     title: 'Drive Straight, Stop on Purpose',
     objective: 'Drive a straight line and stop exactly where you mean to.',
-    tip: 'Drive by motor rotations first. Stretch: drive a measured distance in cm and stop on a line.',
+    lesson:
+      'Drive straight by giving both motors the same speed for a set number of rotations — rotations repeat far better than time. Aim to stop on the same spot twice in a row; for a challenge, convert rotations to centimeters and stop on a line.',
     arc: 'week1',
     criteria: [
-      'Robot drives straight without veering',
-      'It stops where you intended',
-      'Same stopping spot two runs in a row',
+      runlog('Stopped where you intended?'),
+      answer('How many rotations or cm did you land on?'),
     ],
   },
   {
@@ -59,11 +80,12 @@ export const ROOKIE_QUESTS = [
     num: 'R4',
     title: 'Turn on Purpose',
     objective: 'Make clean, repeatable ~90° turns.',
-    tip: 'Pivot by rotations first. Stretch: gyro turn within a few degrees, then chain four turns into a square that returns near start.',
+    lesson:
+      'Turn by spinning the wheels opposite amounts for a set number of rotations, then fine-tune until you land near 90 degrees. If the robot overshoots, lower the turn speed so there is less momentum to carry it past the target.',
     arc: 'week1',
     criteria: [
-      'Robot turns about 90 degrees',
-      'Same heading two of three runs',
+      runlog('Landed about 90 degrees?'),
+      answer('What turn speed stopped the overshoot?'),
     ],
   },
   {
@@ -71,11 +93,12 @@ export const ROOKIE_QUESTS = [
     num: 'R5',
     title: 'Lock Your Start',
     objective: 'Place the robot in the exact same home spot every time.',
-    tip: 'Build a jig or use a wall and mat lines so the robot starts identically.',
+    lesson:
+      'A run can only be reliable if it starts the same way every time. Build a simple jig, or line the robot up against a wall and the mat lines, so you can place it identically. Practice until three starts in a row look the same.',
     arc: 'week1',
     criteria: [
-      'You have a repeatable way to place the robot in home',
-      'Three identical starts in a row',
+      answer('Describe your start setup in one line'),
+      runlog('Identical start?', 3), // PASS = 3 (needs all three)
     ],
   },
 
@@ -85,12 +108,13 @@ export const ROOKIE_QUESTS = [
     num: 'R6',
     title: 'First Attachment',
     objective: 'Mount a simple push or plow attachment that stays solid.',
-    tip: 'A simple push or plow from the kit.',
+    lesson:
+      'Your first attachment should be simple — a push bar or plow from the kit. Mount it so it cannot wobble, and check the robot still drives normally with it on. A loose attachment is the most common cause of a missed mission.',
     arc: 'week2',
     criteria: [
-      'A push or plow attachment is mounted',
-      'It is solid with no wobble',
-      'Robot still drives normally with it on',
+      check('A push or plow attachment is mounted'),
+      check('It is solid with no wobble'),
+      evidence('photo', 'Photo of the attachment on the robot'),
     ],
   },
   {
@@ -98,11 +122,12 @@ export const ROOKIE_QUESTS = [
     num: 'R7',
     title: 'Score Your First Mission',
     objective: 'Leave home, score M01 Surface Brushing, and return.',
-    tip: 'M01 Surface Brushing, no sensors, fastest on the field.',
+    lesson:
+      'M01 Surface Brushing is the friendliest first mission: no sensors needed, just a reliable drive out, a score, and a drive home. Run it a few times and count how often you both score and get home.',
     arc: 'week2',
     criteria: [
-      'Robot leaves home, scores M01 Surface Brushing, returns',
-      'Scored and home two of three runs',
+      runlog('Scored M01 and returned home?'),
+      evidence('video', 'Short clip of a scoring run'),
     ],
   },
   {
@@ -110,11 +135,12 @@ export const ROOKIE_QUESTS = [
     num: 'R8',
     title: 'Keep Your Tokens',
     objective: 'Run a sortie touching the robot only in home to keep all six precision tokens.',
-    tip: 'Never touch the robot outside home; that keeps all six precision tokens, the easiest points on the field.',
+    lesson:
+      'The six precision tokens are the easiest points on the field — you keep them by never touching the robot outside of home. Plan a full sortie where your hands only enter home, and protect those tokens.',
     arc: 'week2',
     criteria: [
-      'A full sortie where the robot was touched only inside home',
-      'All six precision tokens kept',
+      runlog('Robot touched only inside home?'),
+      answer('How many tokens did your best run keep?'),
     ],
   },
   {
@@ -122,12 +148,13 @@ export const ROOKIE_QUESTS = [
     num: 'R9',
     title: 'Build a Motorized Tool',
     objective: 'Use your spare motor to build an active attachment that scores.',
-    tip: 'Use your spare motor for a gripper, lift, or lever.',
+    lesson:
+      'Your spare motor turns a plain pusher into an active tool — a gripper, lift, or lever. Drive it with a button or program so it moves on command, and aim it at a mission element it can actually move or score.',
     arc: 'week2',
     criteria: [
-      'An active attachment using the spare motor',
-      'The tool moves on command',
-      'It scores or moves a mission element',
+      check('An active attachment using the spare motor'),
+      check('The tool moves on command'),
+      evidence('video', 'Clip of the tool moving a mission element'),
     ],
   },
 
@@ -137,12 +164,12 @@ export const ROOKIE_QUESTS = [
     num: 'R10',
     title: 'Chain Two Missions in One Launch',
     objective: 'Score two missions in a single launch, then return home.',
-    tip: 'M01 plus M15 Site Marking or M12 Salvage, no return between.',
+    lesson:
+      'Chaining means scoring two missions in one launch without coming back home in between. Pick two that sit near each other — like M01 plus M15 or M12 — and drive a path that hits both, then returns home.',
     arc: 'week3',
     criteria: [
-      'Two missions scored in a single launch',
-      'No return between them',
-      'Robot returned home',
+      runlog('Two missions scored in one launch, returned home?'),
+      answer('Which two missions did you chain?'),
     ],
   },
   {
@@ -150,12 +177,13 @@ export const ROOKIE_QUESTS = [
     num: 'R11',
     title: 'Plan Your Run',
     objective: 'Pick and order missions with attachment swaps for the 2:30 match.',
-    tip: 'Pick your missions, order them, note your attachment swaps for the 2:30 match.',
+    lesson:
+      'A match plan is just your missions written in the order you will attempt them, with the attachment swaps noted between them. Keep it realistic: everything has to fit inside the 2:30 match clock.',
     arc: 'week3',
     criteria: [
-      'Missions chosen and put in order',
-      'Attachment sequence noted',
-      'Plan fits the 2:30 match',
+      answer('List your missions in order'),
+      answer('Note your attachment sequence'),
+      check('Plan fits the 2:30 match'),
     ],
   },
   {
@@ -163,9 +191,14 @@ export const ROOKIE_QUESTS = [
     num: 'R12',
     title: 'Mock Competition Run',
     objective: 'Complete and score one full timed match run (final-day capstone).',
-    tip: 'Your best scored run of the match.',
+    lesson:
+      'This is your dress rehearsal: one full timed run, scored like the real match. Do not try anything new — run your best, most practiced sequence and record the score.',
     arc: 'week3',
-    criteria: ['A full timed run completed', 'Run scored'],
+    criteria: [
+      check('Full timed run completed'),
+      answer('What was your score?'),
+      evidence('video', 'Clip of your best run'),
+    ],
   },
 ];
 
@@ -176,10 +209,11 @@ export const ROOKIE_OPTIONAL = [
     num: 'RX',
     title: 'Square Up on a Line (Color Sensor)',
     objective: 'Use the color sensor to square up on a line and reset position.',
-    tip: 'Drive until a line to reset position before an approach. The one sensor skill worth your time.',
+    lesson:
+      'A color sensor lets the robot find a line and square up against it, resetting its position before a tricky approach. It is the one sensor skill worth your time — try it once and see how much straighter your next move lands.',
     optional: true,
     unlockAfter: 'R4',
-    criteria: ['We tried squaring up on a line'],
+    criteria: [check('We tried squaring up on a line')],
   },
 ];
 
@@ -198,31 +232,38 @@ export const VETERAN_QUESTS = [
     num: 'V1',
     title: 'Lock Your Start',
     objective: 'Build a repeatable home launch you can hit every time.',
-    tip: '',
+    lesson:
+      'Everything downstream depends on a repeatable launch. Build a jig or use the wall and mat lines so the robot starts in exactly the same spot and heading every time. Prove it by nailing three identical starts in a row.',
     tier: 'bronze',
-    criteria: ['Repeatable home launch built', 'Three identical starts in a row'],
+    criteria: [
+      answer('Describe your launch setup'),
+      runlog('Identical start?', 3), // PASS = 3
+    ],
   },
   {
     id: 'V2',
     num: 'V2',
     title: 'Bank the Tokens',
     objective: 'Run a clean sortie and keep all six precision tokens.',
-    tip: '',
+    lesson:
+      'The six precision tokens are free points you only lose by touching the robot outside home. Run a clean sortie where your hands stay inside home the whole time, and bank all six.',
     tier: 'bronze',
-    criteria: ['Clean sortie, robot touched only in home', 'All six precision tokens kept'],
+    criteria: [runlog('Clean sortie, all six tokens kept?')],
   },
   {
     id: 'V3',
     num: 'V3',
     title: 'Three Reliable Missions',
     objective: 'Score three different missions reliably, two of three runs each.',
-    tip: '',
+    lesson:
+      'Pick three missions you can score reliably, not just once. Aim to land each one at least two times out of three runs — consistency here is what a Bronze sign-off is really testing.',
     tier: 'bronze',
     signoffTo: 'silver',
     criteria: [
-      'Mission A scored two of three',
-      'Mission B scored two of three',
-      'Mission C scored two of three',
+      runlog('Mission A scored?'),
+      runlog('Mission B scored?'),
+      runlog('Mission C scored?'),
+      answer('Which three missions?'),
     ],
   },
 
@@ -232,20 +273,25 @@ export const VETERAN_QUESTS = [
     num: 'V4',
     title: 'One Trip, Two Missions',
     objective: 'Score two missions in a single launch and return home.',
-    tip: '',
+    lesson:
+      'Chaining two missions in a single launch saves the time you would waste returning home. Choose two missions on a sensible path, score both without coming back, and finish in home.',
     tier: 'silver',
-    criteria: ['Two missions scored in one launch', 'Robot returned home'],
+    criteria: [
+      runlog('Two missions in one launch, returned home?'),
+      answer('Which two?'),
+    ],
   },
   {
     id: 'V5',
     num: 'V5',
     title: 'Swap Discipline',
     objective: 'Run a multi-mission sortie with zero on-field attachment changes.',
-    tip: '',
+    lesson:
+      'Swapping attachments on the field eats your match clock. Plan a multi-mission sortie that one configuration can handle, and complete the run with zero on-field swaps.',
     tier: 'silver',
     criteria: [
-      'A multi-mission sortie planned',
-      'Run completed with zero attachment changes on the field',
+      answer('Describe your multi-mission sortie plan'),
+      runlog('Run completed with zero field swaps?'),
     ],
   },
   {
@@ -253,10 +299,15 @@ export const VETERAN_QUESTS = [
     num: 'V6',
     title: 'Take a 30-Pointer',
     objective: 'Score a 30-point mission reliably.',
-    tip: 'M05 Who Lived Here, M13 Statue Rebuild, or M07 Heavy Lifting.',
+    lesson:
+      'Thirty-point missions like M05 Who Lived Here, M13 Statue Rebuild, or M07 Heavy Lifting are worth a dedicated attachment. Build for one, then prove you can score it more than once.',
     tier: 'silver',
     signoffTo: 'gold',
-    criteria: ['A 30-point mission scored', 'Scored two of three'],
+    criteria: [
+      runlog('30-pointer scored?'),
+      answer('Which mission?'),
+      evidence('video', 'Clip of the 30-point score'),
+    ],
   },
 
   // GOLD — sortie planning
@@ -265,13 +316,14 @@ export const VETERAN_QUESTS = [
     num: 'V7',
     title: 'Plan the Match',
     objective: 'Write an ordered match plan with sorties, missions, swaps, and time budget.',
-    tip: '',
+    lesson:
+      'A match plan turns practice into points. Write your sorties in order, list which missions ride in each launch, set the attachment sequence, and budget the whole thing against the 2:30 clock.',
     tier: 'gold',
     criteria: [
-      'Ordered sorties written',
-      'Missions per launch listed',
-      'Attachment sequence set',
-      'Time budget for the 2:30 match noted',
+      answer('Ordered sorties'),
+      answer('Missions per launch'),
+      answer('Attachment sequence'),
+      answer('Time budget for the 2:30 match'),
     ],
   },
   {
@@ -279,10 +331,14 @@ export const VETERAN_QUESTS = [
     num: 'V8',
     title: 'Three-Mission Sortie',
     objective: 'Score three missions in one launch and return home.',
-    tip: '',
+    lesson:
+      'Three missions in one launch is the payoff of good pathing and a versatile attachment. Sequence them so the robot flows from one to the next and still makes it home.',
     tier: 'gold',
     signoffTo: 'platinum',
-    criteria: ['Three missions scored in one launch', 'Robot returned home'],
+    criteria: [
+      runlog('Three missions in one launch, returned home?'),
+      answer('Which three?'),
+    ],
   },
 
   // PLATINUM — the full run
@@ -291,13 +347,14 @@ export const VETERAN_QUESTS = [
     num: 'V9',
     title: 'Full Match Run',
     objective: 'Run your full match plan end to end, twice, beating your first score.',
-    tip: '',
+    lesson:
+      'The full run ties it all together: execute your plan end to end, score it, then do it again and beat your first score. Close with M14 Forum last so your final action locks in the points.',
     tier: 'platinum',
     criteria: [
-      'Full plan run end to end and scored',
-      'Run completed a second time',
-      'Closed with M14 Forum last',
-      'Second score beats the first',
+      check('Closed with M14 Forum last'),
+      answer('First run score'),
+      answer('Second run score (beat the first)'),
+      evidence('video', 'Clip of your best full run'),
     ],
   },
 ];

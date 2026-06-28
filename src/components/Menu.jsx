@@ -4,7 +4,7 @@ import Modal from './Modal.jsx';
 // Team menu: rename the team or switch track. Switching track only changes
 // which ladder is active — each track's progress is stored separately and is
 // never lost.
-export default function Menu({ team, activeLadder, onRename, onSwitchTrack, onClose }) {
+export default function Menu({ team, activeLadder, onRename, onSwitchTrack, onOpenMentorResources, onClose }) {
   const [name, setName] = useState(team?.name ?? '');
   const trimmed = name.trim();
   const dirty = trimmed.length > 0 && trimmed !== team?.name;
@@ -56,6 +56,12 @@ export default function Menu({ team, activeLadder, onRename, onSwitchTrack, onCl
           <span className="track-card__desc">9 quests · Bronze → Platinum</span>
         </button>
       </div>
+
+      <hr className="menu__divider" />
+
+      <button type="button" className="btn btn--ghost btn--block" onClick={onOpenMentorResources}>
+        Mentor Resources ↗
+      </button>
     </Modal>
   );
 }

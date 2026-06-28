@@ -1,13 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTeamState } from './state/useTeamState.js';
 import { getQuest } from './state/quests.js';
+import { ATTRIBUTION } from './state/resources.js';
 import Onboarding from './components/Onboarding.jsx';
 import Climb from './components/Climb.jsx';
 import QuestDetail from './components/QuestDetail.jsx';
 import Troubleshooter from './components/Troubleshooter.jsx';
 import MentorGate from './components/MentorGate.jsx';
 import Menu from './components/Menu.jsx';
+import MentorResources from './components/MentorResources.jsx';
 import DailyRhythm from './components/DailyRhythm.jsx';
+
+const MENTOR_ROUTE = '#/mentor-resources';
 
 const TRACK_LABELS = { rookie: 'Rookie', veteran: 'Veteran' };
 const TIER_LABELS = {
@@ -25,7 +29,6 @@ export default function App() {
     createTeam,
     renameTeam,
     switchTrack,
-    toggleCriterion,
     toggleMentor,
     signOff,
     pendingSignoff,
@@ -35,6 +38,27 @@ export default function App() {
   const [showTroubleshooter, setShowTroubleshooter] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showGate, setShowGate] = useState(false);
+
+  // Lightweight hash routing for the mentor-resources page.
+  const [route, setRoute] = useState(() => window.location.hash);
+  useEffect(() => {
+    const onHash = () => setRoute(window.location.hash);
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  // The typed criterion actions handed to the quest detail gate.
+  const questActions = useMemo(
+    () => ({
+      toggleCheck: team.toggleCheck,
+      logRun: team.logRun,
+      popRun: team.popRun,
+      setAnswer: team.setAnswer,
+      captureEvidence: team.captureEvidence,
+      getEvidenceUrl: team.getEvidenceUrl,
+    }),
+    [team.toggleCheck, team.logRun, team.popRun, team.setAnswer, team.captureEvidence, team.getEvidenceUrl]
+  );
 
   // Auto-prompt the mentor gate the moment a tier's final quest is completed.
   const pendingTier = pendingSignoff?.toTier ?? null;
@@ -48,6 +72,11 @@ export default function App() {
   // First run: capture team name + track before anything else.
   if (!state.team) {
     return <Onboarding onCreate={createTeam} />;
+  }
+
+  // Mentor reference page (reachable from the menu).
+  if (route === MENTOR_ROUTE) {
+    return <MentorResources onBack={() => { window.location.hash = ''; }} />;
   }
 
   const ladderId = state.activeLadder;
@@ -130,6 +159,7 @@ export default function App() {
         <DailyRhythm />
 
         <p className="app__footnote">Progress saves on this device automatically.</p>
+        <p className="app__attribution">{ATTRIBUTION}</p>
       </main>
 
       <nav className="fab-bar" aria-label="Help">
@@ -157,7 +187,7 @@ export default function App() {
           ladderId={ladderId}
           status={team.questStatus(ladderId, selectedQuestId)}
           criteria={team.criteriaFor(ladderId, selectedQuestId)}
-          onToggle={(idx) => toggleCriterion(ladderId, selectedQuestId, idx)}
+          actions={questActions}
           onClose={() => setSelectedQuestId(null)}
         />
       )}
@@ -176,6 +206,10 @@ export default function App() {
           activeLadder={ladderId}
           onRename={handleRename}
           onSwitchTrack={handleSwitchTrack}
+          onOpenMentorResources={() => {
+            window.location.hash = MENTOR_ROUTE;
+            setShowMenu(false);
+          }}
           onClose={() => setShowMenu(false)}
         />
       )}

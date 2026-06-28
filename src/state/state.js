@@ -11,7 +11,15 @@
 // (useTeamState) is a thin wrapper that calls persist() after each mutation.
 // ===========================================================================
 
-import { STORAGE_KEY, MENTOR_CODE, TIER_ORDER } from './config.js';
+import {
+  STORAGE_KEY,
+  STATE_VERSION,
+  MENTOR_CODE,
+  TIER_ORDER,
+  RUNLOG_PASS,
+  RUNLOG_N,
+  ANSWER_MIN,
+} from './config.js';
 import { gatedQuests, optionalQuests, getQuest } from './quests.js';
 
 // ---- time -----------------------------------------------------------------
@@ -31,7 +39,7 @@ function emptyLadder(ladderId) {
 
 export function defaultState() {
   return {
-    version: 'v1',
+    version: STATE_VERSION,
     team: null, // { name, createdAt } — null until onboarding completes
     activeLadder: 'rookie',
     ladders: {
@@ -75,6 +83,10 @@ export function persist(state) {
 
 /** Merge a loaded blob onto defaults so older/partial saves stay valid. */
 function normalize(loaded) {
+  // Discard any incompatible shape (e.g. a stray v1 blob) safely — no crash,
+  // no migration. No student data exists yet, so a clean reset is fine.
+  if (!loaded || loaded.version !== STATE_VERSION) return defaultState();
+
   const base = defaultState();
   const state = {
     ...base,
@@ -94,13 +106,41 @@ function normalize(loaded) {
 
 // ---- gating / status recomputation ----------------------------------------
 
-function criterionState(progress, idx) {
-  return progress?.criteria?.[idx] === true;
+/**
+ * Is one criterion satisfied, given its definition (from quests.js) and its
+ * stored state (from progress.criteria[idx])? This is the single source of
+ * truth for completion — exported so the UI shows the same per-criterion state.
+ */
+export function isCriterionSatisfied(def, st) {
+  if (!def) return false;
+  switch (def.type) {
+    case 'check':
+      return st?.done === true;
+    case 'runlog': {
+      const runs = Array.isArray(st?.runs) ? st.runs : [];
+      const hits = runs.filter((r) => r?.result === 'hit').length;
+      return hits >= (def.pass ?? RUNLOG_PASS);
+    }
+    case 'evidence':
+      return typeof st?.idbKey === 'string' && st.idbKey.length > 0;
+    case 'answer':
+      return typeof st?.text === 'string' && st.text.trim().length >= (def.min ?? ANSWER_MIN);
+    default:
+      return false;
+  }
 }
 
 function isComplete(progress, quest) {
   if (!quest) return false;
-  return quest.criteria.every((_, idx) => criterionState(progress, idx));
+  return quest.criteria.every((def, idx) => isCriterionSatisfied(def, progress?.criteria?.[idx]));
+}
+
+/** Does this quest have at least one satisfied evidence criterion? */
+function computeHasEvidence(progress, quest) {
+  if (!quest) return false;
+  return quest.criteria.some(
+    (def, idx) => def.type === 'evidence' && isCriterionSatisfied(def, progress?.criteria?.[idx])
+  );
 }
 
 function ensureProgress(ladderState, questId) {
@@ -133,9 +173,10 @@ function recomputeLadder(state, ladderId) {
   const ladderState = state.ladders[ladderId];
   const gated = gatedQuests(ladderId);
 
-  // Pass 1: completeness.
+  // Pass 1: completeness + derived hasEvidence flag (dashboard-readable).
   for (const quest of gated) {
     const prog = ensureProgress(ladderState, quest.id);
+    prog.hasEvidence = computeHasEvidence(prog, quest);
     if (isComplete(prog, quest)) {
       prog.status = 'complete';
       if (!prog.completedAt) prog.completedAt = nowIso();
@@ -175,6 +216,7 @@ function recomputeLadder(state, ladderId) {
   // Optional quests: ungated, unlocked once their `unlockAfter` quest is done.
   for (const quest of optionalQuests(ladderId)) {
     const prog = ensureProgress(ladderState, quest.id);
+    prog.hasEvidence = computeHasEvidence(prog, quest);
     if (isComplete(prog, quest)) {
       prog.status = 'complete';
       if (!prog.completedAt) prog.completedAt = nowIso();
@@ -238,22 +280,85 @@ export function switchTrack(state, track) {
 }
 
 /**
- * Toggle one self-check criterion. If this completes the quest, log a
- * `quest_complete` event. Status + downstream unlocks are recomputed.
+ * Shared tail for every criterion mutation: recompute, then log a
+ * `quest_complete` event if (and only if) this change just completed the quest.
  */
-export function toggleCriterion(state, ladderId, questId, idx) {
-  const next = clone(state);
-  const ladderState = next.ladders[ladderId];
-  const prog = ensureProgress(ladderState, questId);
-  const wasComplete = prog.status === 'complete';
-
-  prog.criteria[idx] = !prog.criteria[idx];
+function afterCriterionChange(next, ladderId, questId, wasComplete) {
   recomputeLadder(next, ladderId);
-
   const nowComplete = next.ladders[ladderId].progress[questId].status === 'complete';
   if (!wasComplete && nowComplete) {
     appendEvent(next, 'quest_complete', { ladder: ladderId, questId });
   }
+}
+
+/** check: flip the tick. */
+export function toggleCheck(state, ladderId, questId, idx) {
+  const next = clone(state);
+  const prog = ensureProgress(next.ladders[ladderId], questId);
+  const wasComplete = prog.status === 'complete';
+  const done = !(prog.criteria[idx]?.done === true);
+  prog.criteria[idx] = { type: 'check', done };
+  afterCriterionChange(next, ladderId, questId, wasComplete);
+  return next;
+}
+
+/** runlog: append one Hit/Miss run (capped at n) and log `run_logged`. */
+export function logRun(state, ladderId, questId, idx, result) {
+  const def = getQuest(ladderId, questId)?.criteria?.[idx];
+  const n = def?.n ?? RUNLOG_N;
+  const pass = def?.pass ?? RUNLOG_PASS;
+  const cur = state.ladders[ladderId]?.progress?.[questId]?.criteria?.[idx];
+  if (Array.isArray(cur?.runs) && cur.runs.length >= n) return state; // at cap — no-op
+
+  const next = clone(state);
+  const prog = ensureProgress(next.ladders[ladderId], questId);
+  const wasComplete = prog.status === 'complete';
+  const st = prog.criteria[idx];
+  const runs = Array.isArray(st?.runs) ? [...st.runs] : [];
+  runs.push({ result: result === 'hit' ? 'hit' : 'miss' });
+  prog.criteria[idx] = { type: 'runlog', runs, n, pass };
+
+  appendEvent(next, 'run_logged', { ladder: ladderId, questId, result: runs[runs.length - 1].result });
+  afterCriterionChange(next, ladderId, questId, wasComplete);
+  return next;
+}
+
+/** runlog: undo the last logged run (no event; events stay append-only). */
+export function popRun(state, ladderId, questId, idx) {
+  const cur = state.ladders[ladderId]?.progress?.[questId]?.criteria?.[idx];
+  if (!Array.isArray(cur?.runs) || cur.runs.length === 0) return state;
+
+  const next = clone(state);
+  const prog = ensureProgress(next.ladders[ladderId], questId);
+  const wasComplete = prog.status === 'complete';
+  const st = prog.criteria[idx];
+  prog.criteria[idx] = { ...st, runs: st.runs.slice(0, -1) };
+  afterCriterionChange(next, ladderId, questId, wasComplete);
+  return next;
+}
+
+/** answer: set the textarea text. */
+export function setAnswer(state, ladderId, questId, idx, text) {
+  const next = clone(state);
+  const prog = ensureProgress(next.ladders[ladderId], questId);
+  const wasComplete = prog.status === 'complete';
+  prog.criteria[idx] = { type: 'answer', text: text ?? '' };
+  afterCriterionChange(next, ladderId, questId, wasComplete);
+  return next;
+}
+
+/**
+ * evidence: record the IndexedDB reference for a captured photo/video and log
+ * `evidence_captured`. The blob itself is written to IndexedDB by the media
+ * module BEFORE this is called — state.js never touches IndexedDB.
+ */
+export function setEvidence(state, ladderId, questId, idx, { media, idbKey, capturedAt }) {
+  const next = clone(state);
+  const prog = ensureProgress(next.ladders[ladderId], questId);
+  const wasComplete = prog.status === 'complete';
+  prog.criteria[idx] = { type: 'evidence', media, idbKey, capturedAt };
+  appendEvent(next, 'evidence_captured', { ladder: ladderId, questId, media });
+  afterCriterionChange(next, ladderId, questId, wasComplete);
   return next;
 }
 

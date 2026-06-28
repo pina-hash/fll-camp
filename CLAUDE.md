@@ -41,18 +41,50 @@ All reads/writes of persisted state flow through **one module**:
   else.**
 - `src/state/useTeamState.js` — the React hook wrapping `state.js`. Components
   call its actions; they never touch storage or build event objects directly.
-- `src/state/config.js` — `STORAGE_KEY`, `MENTOR_CODE` (single constant, change in
-  one place), `TIER_ORDER`.
-- `src/state/quests.js` — quest content (Rookie + Veteran ladders).
+- `src/state/config.js` — `STORAGE_KEY`, `STATE_VERSION`, `MENTOR_CODE` (single
+  constant, change in one place), `TIER_ORDER`, and criterion-type defaults
+  (`RUNLOG_N`, `RUNLOG_PASS`, `ANSWER_MIN`, `EVIDENCE_MAX_BYTES`).
+- `src/state/quests.js` — quest content (Rookie + Veteran ladders), now with
+  **typed criteria** + a per-quest `lesson` (micro-lesson).
+- `src/state/media.js` — the **only** place IndexedDB is touched. Stores evidence
+  blobs keyed `media:<ladder>:<questId>:<criterionIdx>`. The blob never leaves the
+  device and is never part of the Phase 2 sync payload.
+- `src/state/resources.js` — all external "Go deeper" deep links + mentor-page
+  links + attribution string, in one place.
 - `src/state/troubleshooter.js` — "Stuck?" symptom/checklist content.
+
+### Criterion types (gate model — Workstream A)
+
+Each quest criterion has a `type`. A quest completes when ALL its criteria are
+satisfied per their type (`isCriterionSatisfied` in state.js is the single source
+of truth, exported for the UI). Definitions live in `quests.js`; per-criterion
+runtime state lives under `progress[questId].criteria[idx]`:
+
+```
+check    def { type:'check',  label }
+         st  { type:'check', done:bool }                       satisfied: done === true
+
+runlog   def { type:'runlog', label, n, pass }                 (default n=3, pass=2)
+         st  { type:'runlog', runs:[{result:'hit'|'miss'}], n, pass }
+                                                                satisfied: hits >= pass
+
+evidence def { type:'evidence', media:'photo'|'video', label }
+         st  { type:'evidence', media, idbKey, capturedAt }    satisfied: idbKey present
+         (blob lives in IndexedDB via media.js; state stores only the idbKey)
+
+answer   def { type:'answer', label, min }                     (default min=8)
+         st  { type:'answer', text }                           satisfied: trim().length >= min
+```
 
 ### Persistence schema
 
-`localStorage` key: **`fll-camp-state-v1`**
+`localStorage` key: **`fll-camp-state-v2`** (`STATE_VERSION = 'v2'`). On load, any
+blob whose `version` !== `'v2'` is discarded safely (no migration, no crash) — a
+stray v1 blob is simply ignored.
 
 ```
 {
-  version: 'v1',
+  version: 'v2',
   team: { name, createdAt } | null,          // null until onboarding
   activeLadder: 'rookie' | 'veteran',
   ladders: {
@@ -64,8 +96,9 @@ All reads/writes of persisted state flow through **one module**:
 }
 
 ProgressEntry = { status: 'locked'|'available'|'complete',
-                  criteria: { [idx:number]: boolean },
-                  completedAt: ISOString|null }
+                  criteria: { [idx:number]: CriterionState },   // see criterion types
+                  completedAt: ISOString|null,
+                  hasEvidence: boolean }   // derived; true if any evidence criterion satisfied
 
 TierField = 'none'|'bronze'|'silver'|'gold'|'platinum'   // highest tier unlocked
                                                           // ('none' = only Bronze open)
@@ -80,21 +113,28 @@ progress separately.
 POSTs to a Google Sheet.
 
 ```
-Event = { ts, type, ladder, questId?, tier?, teamName }
+Event = { ts, type, ladder, questId?, tier?, teamName, result?, media? }
 
 type ∈ {
-  'team_created',     // onboarding; ladder = chosen track
-  'quest_complete',   // a quest's criteria all ticked; includes questId
-  'tier_signoff',     // mentor code accepted; includes tier (the unlocked tier)
-  'mentor_requested', // needsMentor toggled ON
-  'mentor_cleared'    // needsMentor toggled OFF
+  'team_created',      // onboarding; ladder = chosen track
+  'quest_complete',    // a quest's criteria all satisfied; includes questId
+  'tier_signoff',      // mentor code accepted; includes tier (the unlocked tier)
+  'mentor_requested',  // needsMentor toggled ON
+  'mentor_cleared',    // needsMentor toggled OFF
+  'run_logged',        // a runlog Hit/Miss; includes questId + result ('hit'|'miss')
+  'evidence_captured'  // a photo/video captured; includes questId + media ('photo'|'video')
 }
 ```
 
+**Media never syncs** — only the *fact* that evidence exists. Phase 2 POSTs the
+events array + a progress snapshot (each `ProgressEntry` carries the derived
+`hasEvidence` flag the dashboard reads). The IndexedDB blobs stay on-device.
+
 ### Gate model
 
-- **Self-check:** a quest completes when all its criteria are ticked. The next
-  quest in the same tier/arc unlocks automatically.
+- **Self-check:** a quest completes when all its criteria are satisfied (per the
+  criterion types above). The next quest in the same tier/arc unlocks
+  automatically.
 - **Mentor sign-off:** only at veteran tier boundaries. When the final quest of a
   tier is self-checked complete, the app prompts for the 4-digit
   `MENTOR_CODE` (`src/state/config.js`, currently `5669`). On a correct code the
@@ -115,6 +155,21 @@ type ∈ {
 Because every write already funnels through `persist()`, wiring sync is a
 one-file change.
 
+## Resources contract (Workstream B)
+
+- Every quest has an in-app **micro-lesson** (`lesson` in `quests.js`) — the
+  primary teaching; it must stand alone so kids never need to leave the app.
+- `src/state/resources.js` holds, in ONE place: `RESOURCES` (one optional
+  "Go deeper" deep link per quest — precise resource, never a homepage, never
+  gates completion), `MENTOR_LINKS` (three mentor-only references), and
+  `ATTRIBUTION`. Quests with no entry simply show no deep link.
+- The `/mentor-resources` page (hash route `#/mentor-resources`, linked from the
+  menu) maps every quest to its resource plus the mentor-only links.
+- **Link policy:** every configured URL was verified to return 200. If one dies,
+  fall back to the relevant index in `MENTOR_LINKS` and add `// TODO verify-link`.
+  Never ship a dead link. Link only — never copy PrimeLessons / FLL Tutorials
+  slide or video content into the app.
+
 ## Branding tokens (see `src/styles/tokens.css`)
 
 - Black `#0D0D0D`, gold `#F5B800` (accents `#C49200`, `#FFF8D6`, `#F0E080`).
@@ -130,13 +185,16 @@ src/
   main.jsx              app entry
   App.jsx               screen orchestration + overlays
   state/
-    config.js           constants (MENTOR_CODE, STORAGE_KEY, TIER_ORDER)
-    quests.js           Rookie + Veteran quest content
+    config.js           constants (MENTOR_CODE, STORAGE_KEY, TIER_ORDER, type defaults)
+    quests.js           Rookie + Veteran quest content (typed criteria + lessons)
+    resources.js        external deep links + mentor links + attribution (one place)
+    media.js            IndexedDB module — ONLY place IndexedDB is touched
     troubleshooter.js   "Stuck?" content
-    state.js            SINGLE state module (only storage I/O + all mutators)
-    useTeamState.js     React hook over state.js
-  components/           Onboarding, Climb, QuestCard, QuestDetail,
-                        Troubleshooter, MentorGate, Menu, DailyRhythm, Modal
+    state.js            SINGLE state module (only localStorage I/O + all mutators)
+    useTeamState.js     React hook over state.js (+ evidence/IndexedDB orchestration)
+  components/           Onboarding, Climb, QuestCard, QuestDetail, Criterion,
+                        Evidence, Troubleshooter, MentorGate, Menu,
+                        MentorResources, DailyRhythm, Modal
   styles/               tokens.css (branding), app.css
 public/
   manifest.webmanifest, icons/   (PWA install assets)
