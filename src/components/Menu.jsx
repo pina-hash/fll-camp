@@ -11,6 +11,7 @@ export default function Menu({
   onSwitchTrack,
   deviceCanCapture,
   onSetDeviceCanCapture,
+  onOpenResourceLibrary,
   onOpenMentorResources,
   onClose,
 }) {
@@ -87,7 +88,15 @@ export default function Menu({
 
       <hr className="menu__divider" />
 
-      <button type="button" className="btn btn--ghost btn--block" onClick={onOpenMentorResources}>
+      <button type="button" className="btn btn--primary btn--block" onClick={onOpenResourceLibrary}>
+        Resource Library ↗
+      </button>
+      <button
+        type="button"
+        className="btn btn--ghost btn--block"
+        style={{ marginTop: '0.6rem' }}
+        onClick={onOpenMentorResources}
+      >
         Mentor Resources ↗
       </button>
     </Modal>

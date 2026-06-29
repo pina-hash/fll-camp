@@ -37,7 +37,8 @@ export default function QuestDetail({ quest, ladderId, status, criteria, actions
             <p className="lesson__text">{quest.lesson}</p>
           </div>
 
-          {/* Optional, secondary deep link — never gates completion. */}
+          {/* Optional, secondary deep link — never gates completion. Sourced
+              from resources.js by id (single source of truth). */}
           {deepLink && (
             <a
               className="deeplink"
@@ -46,7 +47,9 @@ export default function QuestDetail({ quest, ladderId, status, criteria, actions
               rel="noopener noreferrer"
             >
               <span className="deeplink__go">Go deeper ↗</span>
-              <span className="deeplink__label">{deepLink.label}</span>
+              <span className="deeplink__label">
+                {deepLink.title} <span className="chip chip--source">{deepLink.source}</span>
+              </span>
             </a>
           )}
 

@@ -9,9 +9,11 @@ import Troubleshooter from './components/Troubleshooter.jsx';
 import MentorGate from './components/MentorGate.jsx';
 import Menu from './components/Menu.jsx';
 import MentorResources from './components/MentorResources.jsx';
+import ResourceLibrary from './components/ResourceLibrary.jsx';
 import DailyRhythm from './components/DailyRhythm.jsx';
 
 const MENTOR_ROUTE = '#/mentor-resources';
+const RESOURCES_ROUTE = '#/resources';
 
 const TRACK_LABELS = { rookie: 'Rookie', veteran: 'Veteran' };
 const TIER_LABELS = {
@@ -79,6 +81,26 @@ export default function App() {
     return <MentorResources onBack={() => { window.location.hash = ''; }} />;
   }
 
+  // Student Resource Library (free-browse; menu + on-ladder entry points). The
+  // troubleshooter can be opened from here, so it rides along as an overlay.
+  if (route === RESOURCES_ROUTE) {
+    return (
+      <>
+        <ResourceLibrary
+          onBack={() => { window.location.hash = ''; }}
+          onOpenTroubleshooter={() => setShowTroubleshooter(true)}
+        />
+        {showTroubleshooter && (
+          <Troubleshooter
+            onClose={() => setShowTroubleshooter(false)}
+            needsMentor={state.needsMentor}
+            onRequestMentor={toggleMentor}
+          />
+        )}
+      </>
+    );
+  }
+
   const ladderId = state.activeLadder;
   const { done, total } = team.progressCounts(ladderId);
   const currentId = team.currentQuestId(ladderId);
@@ -133,6 +155,16 @@ export default function App() {
       </div>
 
       <main className="app__main">
+        <button
+          type="button"
+          className="library-bar"
+          onClick={() => { window.location.hash = RESOURCES_ROUTE; }}
+        >
+          <span className="library-bar__icon" aria-hidden="true">📚</span>
+          <span className="library-bar__text">Browse the Resource Library</span>
+          <span className="library-bar__go" aria-hidden="true">→</span>
+        </button>
+
         {pendingSignoff && (
           <button
             type="button"
@@ -209,6 +241,10 @@ export default function App() {
           onSwitchTrack={handleSwitchTrack}
           deviceCanCapture={state.deviceCanCapture}
           onSetDeviceCanCapture={team.setDeviceCanCapture}
+          onOpenResourceLibrary={() => {
+            window.location.hash = RESOURCES_ROUTE;
+            setShowMenu(false);
+          }}
           onOpenMentorResources={() => {
             window.location.hash = MENTOR_ROUTE;
             setShowMenu(false);

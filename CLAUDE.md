@@ -176,16 +176,46 @@ one-file change.
 
 - Every quest has an in-app **micro-lesson** (`lesson` in `quests.js`) — the
   primary teaching; it must stand alone so kids never need to leave the app.
-- `src/state/resources.js` holds, in ONE place: `RESOURCES` (one optional
-  "Go deeper" deep link per quest — precise resource, never a homepage, never
-  gates completion), `MENTOR_LINKS` (three mentor-only references), and
-  `ATTRIBUTION`. Quests with no entry simply show no deep link.
+- `src/state/resources.js` is the **single source of truth for every external
+  link**. `RESOURCES` is keyed by a stable resource `id`; everything that points
+  off-app references an entry by id so nothing is ever duplicated.
+
+  ```
+  RESOURCES[id] = {
+    id,                       // stable key
+    title,                    // kid-friendly name
+    blurb,                    // one short line — what it helps you do
+    source: 'PrimeLessons' | 'FLL Tutorials',   // drives the source chip
+    url,                      // verified deep link (never a homepage)
+    topics: TopicKey[],       // browse-topic keys ([] = not surfaced on the library page)
+    audience: 'student' | 'mentor'
+  }
+  ```
+
+  Also exported: `TOPICS` (ordered browse topics — `new-to-fll`, `driving`,
+  `sensors`, `building`, `missions`, `strategy`; the closing "More" group uses
+  the `more` topic key), `QUEST_RESOURCE_IDS` (`questId -> resource id`),
+  `MENTOR_LINK_IDS`, `ATTRIBUTION`, and helpers `resourceFor(questId)`,
+  `resourcesForTopic(topicKey)`, `mentorLinks()`.
+- **Three consumers, all by id:** the per-quest "Go deeper" deep link
+  (`resourceFor`, optional, never gates completion), the student **Resource
+  Library** page, and the mentor page. Quests not in `QUEST_RESOURCE_IDS` show no
+  deep link.
+- **Resource Library** (hash route `#/resources`) — a pure free-browse page:
+  **no gating, no progress tracking**. Topics are banded section headers (same
+  editorial system as the week-arcs); under each, resource cards (kid title,
+  blurb, source chip, external-link affordance) open the deep link in a new tab.
+  A closing "More" group holds the two index pages, and a Stuck link opens the
+  troubleshooter. Reachable from the menu ("Resource Library", above "Mentor
+  Resources") and from a slim on-ladder entry bar near the top of the main screen.
 - The `/mentor-resources` page (hash route `#/mentor-resources`, linked from the
-  menu) maps every quest to its resource plus the mentor-only links.
-- **Link policy:** every configured URL was verified to return 200. If one dies,
-  fall back to the relevant index in `MENTOR_LINKS` and add `// TODO verify-link`.
-  Never ship a dead link. Link only — never copy PrimeLessons / FLL Tutorials
-  slide or video content into the app.
+  menu) maps every quest to its resource (via `resourceFor`) plus the mentor-only
+  links (`mentorLinks()`).
+- **Link policy:** every configured URL was verified to return 200 (2026-06-29).
+  If one dies, fall back to the relevant index (`prime-index` Lessons.html or
+  `fllt-index` category.html) and add `// TODO verify-link`. Never ship a dead
+  link. Link only — never copy PrimeLessons / FLL Tutorials slide or video
+  content into the app.
 
 ## Branding tokens (see `src/styles/tokens.css`)
 
@@ -204,14 +234,15 @@ src/
   state/
     config.js           constants (MENTOR_CODE, STORAGE_KEY, TIER_ORDER, type defaults)
     quests.js           Rookie + Veteran quest content (typed criteria + lessons)
-    resources.js        external deep links + mentor links + attribution (one place)
+    resources.js        SINGLE source of truth for external links (id-keyed:
+                        per-quest deep links + Resource Library + mentor links + attribution)
     media.js            IndexedDB module — ONLY place IndexedDB is touched
     troubleshooter.js   "Stuck?" content
     state.js            SINGLE state module (only localStorage I/O + all mutators)
     useTeamState.js     React hook over state.js (+ evidence/IndexedDB orchestration)
   components/           Onboarding, Climb, QuestCard, QuestDetail, Criterion,
                         Evidence, Troubleshooter, MentorGate, Menu,
-                        MentorResources, DailyRhythm, Modal
+                        MentorResources, ResourceLibrary, DailyRhythm, Modal
   styles/               tokens.css (branding), app.css
 public/
   manifest.webmanifest, icons/   (PWA install assets)

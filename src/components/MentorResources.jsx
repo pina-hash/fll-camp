@@ -3,7 +3,7 @@ import {
   ROOKIE_OPTIONAL,
   VETERAN_QUESTS,
 } from '../state/quests.js';
-import { RESOURCES, MENTOR_LINKS, ATTRIBUTION } from '../state/resources.js';
+import { resourceFor, mentorLinks, ATTRIBUTION } from '../state/resources.js';
 
 // Standalone reference page (route #/mentor-resources). Maps every quest to its
 // deep link, plus three mentor-only references. Linked from the team menu.
@@ -32,10 +32,10 @@ export default function MentorResources({ onBack }) {
         <section className="reslist">
           <h2 className="reslist__head">Mentor-only references</h2>
           <ul className="reslist__items">
-            {MENTOR_LINKS.map((link) => (
-              <li key={link.url} className="resrow">
-                <a className="resrow__link" href={link.url} target="_blank" rel="noopener noreferrer">
-                  <span className="resrow__title">{link.label}</span>
+            {mentorLinks().map((res) => (
+              <li key={res.id} className="resrow">
+                <a className="resrow__link" href={res.url} target="_blank" rel="noopener noreferrer">
+                  <span className="resrow__title">{res.title} — {res.source}</span>
                   <span className="resrow__go">Open ↗</span>
                 </a>
               </li>
@@ -55,7 +55,7 @@ function QuestList({ title, quests }) {
       <h2 className="reslist__head">{title}</h2>
       <ul className="reslist__items">
         {quests.map((q) => {
-          const res = RESOURCES[q.id];
+          const res = resourceFor(q.id);
           return (
             <li key={q.id} className="resrow">
               <div className="resrow__quest">
@@ -64,7 +64,7 @@ function QuestList({ title, quests }) {
               </div>
               {res ? (
                 <a className="resrow__link" href={res.url} target="_blank" rel="noopener noreferrer">
-                  <span className="resrow__title">{res.label}</span>
+                  <span className="resrow__title">{res.title} — {res.source}</span>
                   <span className="resrow__go">Open ↗</span>
                 </a>
               ) : (
