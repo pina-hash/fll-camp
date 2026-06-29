@@ -101,7 +101,7 @@ stray v1 blob is simply ignored.
 ```
 {
   version: 'v2',
-  team: { name, createdAt } | null,          // null until onboarding
+  team: { name, createdAt, dailyLog } | null, // null until onboarding
   activeLadder: 'rookie' | 'veteran',
   ladders: {
     rookie:  { progress: { [questId]: ProgressEntry } },
@@ -109,8 +109,19 @@ stray v1 blob is simply ignored.
   },
   needsMentor: boolean,
   deviceCanCapture: boolean,                 // per-device; false => evidence non-gating
+  seenTour: boolean,                         // per-device; first-run tour seen here (default false)
+  setupBarDismissedOn: string,               // per-device; local date the setup bar was dismissed
   events: Event[]                            // append-only
 }
+
+// Daily check-in (Roles + reflection), keyed by LOCAL date 'YYYY-MM-DD'. Team
+// data, so it rides the existing Phase 2 snapshot. No event types. todayKey()
+// (state.js) returns the key; a new day starts a fresh entry, old days are kept.
+DailyLog = { [dateKey:string]: {
+  roles: { coder, operator, protoBuilder, planner },  // free text, none required
+  reflection: string,                                  // end-of-day note, never gates
+  updatedAt: ISOString
+} }
 
 ProgressEntry = { status: 'locked'|'available'|'complete',
                   criteria: { [idx:number]: CriterionState },   // see criterion types
@@ -217,6 +228,31 @@ one-file change.
   link. Link only — never copy PrimeLessons / FLL Tutorials slide or video
   content into the app.
 
+## First-run tour + Daily check-in (Workstream C)
+
+Two additive features; neither touches storage I/O, `persist()`, the gate logic,
+or existing routes.
+
+- **First-run site tour** (`SiteTour.jsx`). A centered modal carousel (6 steps,
+  progress dots, Back/Next, Skip + X, swipe + arrow keys; final Next is a green
+  "Start climbing"). Each step shows a small CSS-built **echo** of a real element
+  (no images/screenshots/live-DOM highlighting). Gated by the per-device
+  `seenTour` flag: auto-launches once when a team first reaches the ladder screen
+  and `seenTour === false`; finish/skip/X/Esc/backdrop all call `markTourSeen`
+  (sets `seenTour = true`) so it never auto-nags again. The menu item **"How
+  This Works"** reopens it any time, independent of the flag.
+- **Roles + Daily Check-In** (`TodayCheckin.jsx`, hash route `#/today`). Roles
+  (Coder / Operator / Prototype Builder / Planner) + an end-of-day reflection,
+  autosaved into `team.dailyLog[todayKey()]` via state.js mutators
+  (`ensureDailyToday`, `setRole`, `setReflection`). No new event types — these
+  are notes, not gate actions. The page reuses the existing `DailyRhythm`
+  component for its "Today's Rhythm" section. Role/reflection data is shared team
+  state (rides the Phase 2 snapshot); the per-device `setupBarDismissedOn` is UI
+  only. Access: a menu item **"Today's Roles"** (above "Resource Library") and a
+  slim, dismissible on-ladder **setup bar** shown only while today's roles are
+  all blank and not dismissed-for-the-day (stacked above the Resource Library
+  bar). Stuck + Request a Mentor remain the only two sticky bottom buttons.
+
 ## Branding tokens (see `src/styles/tokens.css`)
 
 - Black `#0D0D0D`, gold `#F5B800` (accents `#C49200`, `#FFF8D6`, `#F0E080`).
@@ -242,7 +278,8 @@ src/
     useTeamState.js     React hook over state.js (+ evidence/IndexedDB orchestration)
   components/           Onboarding, Climb, QuestCard, QuestDetail, Criterion,
                         Evidence, Troubleshooter, MentorGate, Menu,
-                        MentorResources, ResourceLibrary, DailyRhythm, Modal
+                        MentorResources, ResourceLibrary, TodayCheckin,
+                        SiteTour, DailyRhythm, Modal
   styles/               tokens.css (branding), app.css
 public/
   manifest.webmanifest, icons/   (PWA install assets)

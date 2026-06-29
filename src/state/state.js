@@ -59,7 +59,7 @@ function detectCanCapture() {
 export function defaultState() {
   return {
     version: STATE_VERSION,
-    team: null, // { name, createdAt } — null until onboarding completes
+    team: null, // { name, createdAt, dailyLog } — null until onboarding completes
     activeLadder: 'rookie',
     ladders: {
       rookie: emptyLadder('rookie'),
@@ -70,7 +70,30 @@ export function defaultState() {
     // have a camera to film the robot? When false, evidence criteria are
     // optional (non-gating). The menu toggle overrides this initial guess.
     deviceCanCapture: detectCanCapture(),
+    // Per-device: has the first-run site tour been seen on THIS device? Set true
+    // on finish/skip so it never auto-launches again here. Menu re-open ignores it.
+    seenTour: false,
+    // Per-device UI: the local date ('YYYY-MM-DD') on which the "set up today's
+    // roles" bar was dismissed. Resets naturally each new day.
+    setupBarDismissedOn: '',
     events: [], // append-only — see appendEvent()
+  };
+}
+
+/** Local calendar date as 'YYYY-MM-DD' (NOT UTC) — the key for team.dailyLog. */
+export function todayKey(d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/** A fresh, all-blank daily check-in entry. */
+function blankDayEntry() {
+  return {
+    roles: { coder: '', operator: '', protoBuilder: '', planner: '' },
+    reflection: '',
+    updatedAt: nowIso(),
   };
 }
 
@@ -123,8 +146,15 @@ function normalize(loaded) {
     // Preserve a previously-saved device setting; otherwise seed from heuristic.
     deviceCanCapture:
       typeof loaded.deviceCanCapture === 'boolean' ? loaded.deviceCanCapture : detectCanCapture(),
+    seenTour: typeof loaded.seenTour === 'boolean' ? loaded.seenTour : false,
+    setupBarDismissedOn:
+      typeof loaded.setupBarDismissedOn === 'string' ? loaded.setupBarDismissedOn : '',
     events: Array.isArray(loaded.events) ? loaded.events : [],
   };
+  // A team loaded from an older save may predate dailyLog — backfill it.
+  if (state.team && (typeof state.team.dailyLog !== 'object' || state.team.dailyLog === null)) {
+    state.team = { ...state.team, dailyLog: {} };
+  }
   if (state.activeLadder !== 'veteran') state.activeLadder = 'rookie';
   recomputeAll(state);
   return state;
@@ -304,7 +334,7 @@ function clone(state) {
 export function createTeam(state, { name, track }) {
   const next = clone(state);
   const ladder = track === 'veteran' ? 'veteran' : 'rookie';
-  next.team = { name: name.trim(), createdAt: nowIso() };
+  next.team = { name: name.trim(), createdAt: nowIso(), dailyLog: {} };
   next.activeLadder = ladder;
   recomputeAll(next);
   appendEvent(next, 'team_created', { ladder });
@@ -466,6 +496,59 @@ export function setDeviceCanCapture(state, value) {
   const next = clone(state);
   next.deviceCanCapture = !!value;
   recomputeAll(next);
+  return next;
+}
+
+/** Mark the first-run site tour as seen (per device). No event, no recompute. */
+export function setSeenTour(state, value = true) {
+  const next = clone(state);
+  next.seenTour = !!value;
+  return next;
+}
+
+// ---- daily check-in (team.dailyLog) ---------------------------------------
+// Roles + end-of-day reflection, keyed by local date. This is team data, so it
+// rides the existing Phase 2 snapshot ({ team, ... }). No new event types: these
+// are notes, not gate actions.
+
+/** Ensure today's blank entry exists. No-op (same ref) if it already does. */
+export function ensureDailyToday(state, dateKey) {
+  if (state.team?.dailyLog?.[dateKey]) return state;
+  const next = clone(state);
+  if (!next.team) return next;
+  if (!next.team.dailyLog) next.team.dailyLog = {};
+  next.team.dailyLog[dateKey] = blankDayEntry();
+  return next;
+}
+
+/** Set one role name for a given day. Autosaved as the kid types. */
+export function setRole(state, dateKey, roleKey, value) {
+  const next = clone(state);
+  if (!next.team) return next;
+  if (!next.team.dailyLog) next.team.dailyLog = {};
+  const entry = next.team.dailyLog[dateKey] ?? blankDayEntry();
+  entry.roles = { ...entry.roles, [roleKey]: value ?? '' };
+  entry.updatedAt = nowIso();
+  next.team.dailyLog[dateKey] = entry;
+  return next;
+}
+
+/** Set the end-of-day reflection for a given day. Never gates anything. */
+export function setReflection(state, dateKey, text) {
+  const next = clone(state);
+  if (!next.team) return next;
+  if (!next.team.dailyLog) next.team.dailyLog = {};
+  const entry = next.team.dailyLog[dateKey] ?? blankDayEntry();
+  entry.reflection = text ?? '';
+  entry.updatedAt = nowIso();
+  next.team.dailyLog[dateKey] = entry;
+  return next;
+}
+
+/** Remember that the "set up today's roles" bar was dismissed for this day. */
+export function dismissSetupBar(state, dateKey) {
+  const next = clone(state);
+  next.setupBarDismissedOn = dateKey;
   return next;
 }
 

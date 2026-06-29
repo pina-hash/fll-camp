@@ -11,8 +11,10 @@ export default function Menu({
   onSwitchTrack,
   deviceCanCapture,
   onSetDeviceCanCapture,
+  onOpenToday,
   onOpenResourceLibrary,
   onOpenMentorResources,
+  onOpenTour,
   onClose,
 }) {
   const [name, setName] = useState(team?.name ?? '');
@@ -88,7 +90,15 @@ export default function Menu({
 
       <hr className="menu__divider" />
 
-      <button type="button" className="btn btn--primary btn--block" onClick={onOpenResourceLibrary}>
+      <button type="button" className="btn btn--primary btn--block" onClick={onOpenToday}>
+        Today's Roles ↗
+      </button>
+      <button
+        type="button"
+        className="btn btn--primary btn--block"
+        style={{ marginTop: '0.6rem' }}
+        onClick={onOpenResourceLibrary}
+      >
         Resource Library ↗
       </button>
       <button
@@ -98,6 +108,14 @@ export default function Menu({
         onClick={onOpenMentorResources}
       >
         Mentor Resources ↗
+      </button>
+      <button
+        type="button"
+        className="btn btn--ghost btn--block"
+        style={{ marginTop: '0.6rem' }}
+        onClick={onOpenTour}
+      >
+        How This Works
       </button>
     </Modal>
   );

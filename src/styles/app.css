@@ -1674,3 +1674,421 @@ h3 {
   line-height: 1.3;
   color: var(--ink-soft);
 }
+
+/* ===========================================================================
+   First-run site tour (carousel modal)
+   =========================================================================== */
+.modal.tour {
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.tour__panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  background: var(--page-bg);
+  border-top: 6px solid var(--gold);
+  border-radius: 22px;
+  box-shadow: var(--shadow-lg);
+  padding: 0.6rem 1.2rem 1.3rem;
+  animation: pop 0.22s ease;
+}
+.tour__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.2rem;
+}
+.tour__skip {
+  background: transparent;
+  border: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0.4rem 0.2rem;
+}
+/* Echo stage: a neutral panel the small element sits centered on. */
+.tour__echo {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  padding: 1rem;
+  margin: 0.2rem 0 1.1rem;
+  background: #f3f2ec;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.tour__title {
+  font-size: 1.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1.05;
+  color: var(--black);
+  text-align: center;
+}
+.tour__body {
+  margin: 0.6rem 0 0;
+  font-size: 1.12rem;
+  line-height: 1.4;
+  color: var(--ink);
+  text-align: center;
+}
+.tour__dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1.2rem 0;
+}
+.tour__dot {
+  width: 11px;
+  height: 11px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--line);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.tour__dot--on {
+  background: var(--gold);
+  transform: scale(1.25);
+}
+.tour__nav {
+  display: flex;
+  gap: 0.6rem;
+}
+.tour__nav .btn {
+  flex: 1;
+}
+
+/* ---- Tour echoes (mini, static replicas built from app CSS) ---------------- */
+.echo-band {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.7rem 1rem;
+  background: var(--black);
+  border-left: 6px solid var(--gold);
+  border-radius: var(--radius-sm);
+}
+.echo-band__kicker {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+.echo-band__word {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1;
+}
+.echo-disc {
+  position: relative;
+  padding-top: 0.7rem;
+}
+.echo-disc__disc {
+  width: 56px;
+  height: 56px;
+  font-size: 1.2rem;
+}
+.echo-here {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--black);
+  background: var(--gold);
+  border-radius: 999px;
+  padding: 0.16rem 0.5rem;
+  box-shadow: var(--shadow);
+}
+.echo-lesson {
+  width: 100%;
+  margin: 0;
+}
+.echo-gate {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.echo-gate__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.45rem;
+  background: #fff;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+}
+.echo-box {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--green);
+  border: 2px solid var(--green-dark);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.echo-gate .pip {
+  width: 26px;
+  height: 26px;
+  font-size: 0.78rem;
+}
+.echo-cam {
+  font-size: 1.1rem;
+}
+.echo-textline {
+  flex-direction: column;
+  gap: 0.22rem;
+  min-width: 46px;
+}
+.echo-textline span {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+}
+.echo-textline span:first-child {
+  width: 42px;
+}
+.echo-textline span:last-child {
+  width: 28px;
+}
+/* Echoed buttons: detach from the flex:1 bottom-bar sizing. */
+.echo-fab {
+  flex: 0 0 auto;
+  min-height: 0;
+  padding: 0.5rem 1rem;
+  font-size: 0.92rem;
+  box-shadow: var(--shadow);
+}
+.echo-help {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: stretch;
+  width: 100%;
+}
+.echo-libbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.8rem;
+  background: var(--card-bg);
+  border: 2px solid var(--gold);
+  border-left: 6px solid var(--gold);
+  border-radius: var(--radius);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--black);
+}
+
+/* ===========================================================================
+   Today check-in (#/today)
+   =========================================================================== */
+.today__date {
+  margin: 0 0 1.2rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--gold-deep);
+}
+.role-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.1rem;
+}
+.role-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+.role-row__field {
+  flex: 1;
+  margin-bottom: 0;
+}
+.role-row__view {
+  flex: none;
+  min-height: 54px;
+  padding: 0 0.9rem;
+  background: var(--card-bg);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--gold-deep);
+  white-space: nowrap;
+}
+.role-row__view:active {
+  transform: scale(0.97);
+}
+.role-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.1rem;
+}
+.role-card {
+  background: #fff;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.role-card--open {
+  border-color: var(--gold);
+}
+.role-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 56px;
+  text-align: left;
+  padding: 0.6rem 0.85rem;
+  background: #fff;
+  border: none;
+}
+.role-card--open .role-card__head {
+  background: var(--gold-pale);
+}
+.role-card__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.role-card__name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--black);
+}
+.role-card__kicker {
+  font-family: var(--font-display);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+}
+.role-card__chev {
+  flex: none;
+  color: var(--gold-deep);
+  font-size: 1rem;
+}
+.role-card__body {
+  padding: 0.4rem 0.85rem 0.9rem;
+  border-top: 1px solid var(--line);
+}
+.role-card__body p {
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.role-card__body strong {
+  color: var(--black);
+}
+.note-box {
+  padding: 0.85rem 1rem;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: var(--ink);
+  background: var(--green-tint);
+  border: 1px solid var(--green-mid);
+  border-left: 5px solid var(--green);
+  border-radius: 12px;
+}
+.today__reflection {
+  min-height: 96px;
+}
+
+/* ===========================================================================
+   Setup bar (stacks above the Resource Library bar; collapses when done)
+   =========================================================================== */
+.setup-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 0.4rem;
+  margin-bottom: 0.7rem;
+}
+.setup-bar__main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  background: var(--black);
+  border: 2px solid var(--gold);
+  border-left: 6px solid var(--gold);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.setup-bar__main:active {
+  transform: scale(0.99);
+}
+.setup-bar__icon {
+  font-size: 1.15rem;
+  flex: none;
+}
+.setup-bar__text {
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--gold);
+}
+.setup-bar__go {
+  flex: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--gold);
+}
+.setup-bar__dismiss {
+  flex: none;
+  width: 44px;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  color: var(--ink);
+  background: var(--card-bg);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+}
+.setup-bar__dismiss:active {
+  transform: scale(0.96);
+}

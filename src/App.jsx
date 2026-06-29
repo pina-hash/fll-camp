@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTeamState } from './state/useTeamState.js';
 import { getQuest } from './state/quests.js';
+import { todayKey } from './state/state.js';
 import { ATTRIBUTION } from './state/resources.js';
 import Onboarding from './components/Onboarding.jsx';
 import Climb from './components/Climb.jsx';
@@ -10,10 +11,24 @@ import MentorGate from './components/MentorGate.jsx';
 import Menu from './components/Menu.jsx';
 import MentorResources from './components/MentorResources.jsx';
 import ResourceLibrary from './components/ResourceLibrary.jsx';
+import TodayCheckin from './components/TodayCheckin.jsx';
+import SiteTour from './components/SiteTour.jsx';
 import DailyRhythm from './components/DailyRhythm.jsx';
 
 const MENTOR_ROUTE = '#/mentor-resources';
 const RESOURCES_ROUTE = '#/resources';
+const TODAY_ROUTE = '#/today';
+
+/** Friendly local date for the Today header, e.g. "Friday, June 26". */
+function friendlyToday() {
+  return new Date().toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+const BLANK_DAY = { roles: { coder: '', operator: '', protoBuilder: '', planner: '' }, reflection: '' };
 
 const TRACK_LABELS = { rookie: 'Rookie', veteran: 'Veteran' };
 const TIER_LABELS = {
@@ -40,14 +55,32 @@ export default function App() {
   const [showTroubleshooter, setShowTroubleshooter] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showGate, setShowGate] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
-  // Lightweight hash routing for the mentor-resources page.
+  // Lightweight hash routing for the standalone pages.
   const [route, setRoute] = useState(() => window.location.hash);
   useEffect(() => {
     const onHash = () => setRoute(window.location.hash);
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+
+  // Auto-launch the first-run tour once a team reaches the ladder screen, only
+  // when it has never been seen on this device. markTourSeen (on finish/skip)
+  // sets seenTour true so this never fires again.
+  useEffect(() => {
+    if (state.team && !state.seenTour) setShowTour(true);
+  }, [state.team, state.seenTour]);
+
+  // On the Today route, make sure today's blank check-in entry exists.
+  useEffect(() => {
+    if (state.team && route === TODAY_ROUTE) team.ensureToday(todayKey());
+  }, [route, state.team, team]);
+
+  function closeTour() {
+    setShowTour(false);
+    if (!state.seenTour) team.markTourSeen();
+  }
 
   // The typed criterion actions handed to the quest detail gate.
   const questActions = useMemo(
@@ -101,10 +134,33 @@ export default function App() {
     );
   }
 
+  // Daily check-in: roles + reflection for today (free-form, never gates).
+  if (route === TODAY_ROUTE) {
+    const today = todayKey();
+    const entry = state.team.dailyLog?.[today] ?? BLANK_DAY;
+    return (
+      <TodayCheckin
+        entry={entry}
+        friendlyDate={friendlyToday()}
+        onBack={() => { window.location.hash = ''; }}
+        onSetRole={(roleKey, value) => team.setRole(today, roleKey, value)}
+        onSetReflection={(text) => team.setReflection(today, text)}
+      />
+    );
+  }
+
   const ladderId = state.activeLadder;
   const { done, total } = team.progressCounts(ladderId);
   const currentId = team.currentQuestId(ladderId);
   const pct = total ? Math.round((done / total) * 100) : 0;
+
+  // Setup bar: only while today's roles are all blank and it hasn't been
+  // dismissed for the day. Filling any role (or dismissing) collapses it.
+  const today = todayKey();
+  const todayEntry = state.team.dailyLog?.[today];
+  const rolesAllBlank =
+    !todayEntry || Object.values(todayEntry.roles).every((v) => !String(v ?? '').trim());
+  const showSetupBar = rolesAllBlank && state.setupBarDismissedOn !== today;
 
   const selectedQuest = selectedQuestId ? getQuest(ladderId, selectedQuestId) : null;
 
@@ -155,6 +211,28 @@ export default function App() {
       </div>
 
       <main className="app__main">
+        {showSetupBar && (
+          <div className="setup-bar">
+            <button
+              type="button"
+              className="setup-bar__main"
+              onClick={() => { window.location.hash = TODAY_ROUTE; }}
+            >
+              <span className="setup-bar__icon" aria-hidden="true">📋</span>
+              <span className="setup-bar__text">Set up today: assign your team's roles</span>
+              <span className="setup-bar__go" aria-hidden="true">→</span>
+            </button>
+            <button
+              type="button"
+              className="setup-bar__dismiss"
+              onClick={() => team.dismissSetupBar(today)}
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         <button
           type="button"
           className="library-bar"
@@ -241,12 +319,20 @@ export default function App() {
           onSwitchTrack={handleSwitchTrack}
           deviceCanCapture={state.deviceCanCapture}
           onSetDeviceCanCapture={team.setDeviceCanCapture}
+          onOpenToday={() => {
+            window.location.hash = TODAY_ROUTE;
+            setShowMenu(false);
+          }}
           onOpenResourceLibrary={() => {
             window.location.hash = RESOURCES_ROUTE;
             setShowMenu(false);
           }}
           onOpenMentorResources={() => {
             window.location.hash = MENTOR_ROUTE;
+            setShowMenu(false);
+          }}
+          onOpenTour={() => {
+            setShowTour(true);
             setShowMenu(false);
           }}
           onClose={() => setShowMenu(false)}
@@ -260,6 +346,8 @@ export default function App() {
           onClose={() => setShowGate(false)}
         />
       )}
+
+      {showTour && <SiteTour onClose={closeTour} />}
     </div>
   );
 }

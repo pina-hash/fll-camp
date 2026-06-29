@@ -24,6 +24,11 @@ import {
   setEvidence,
   toggleMentor,
   setDeviceCanCapture,
+  setSeenTour,
+  ensureDailyToday,
+  setRole,
+  setReflection,
+  dismissSetupBar,
   signOff,
   isMentorCode,
   pendingSignoff,
@@ -87,6 +92,15 @@ export function useTeamState() {
 
       toggleMentor: () => commit(toggleMentor),
       setDeviceCanCapture: (value) => commit((s) => setDeviceCanCapture(s, value)),
+
+      // --- first-run tour ---
+      markTourSeen: () => commit((s) => setSeenTour(s, true)),
+
+      // --- daily check-in (roles + reflection) ---
+      ensureToday: (dateKey) => commit((s) => ensureDailyToday(s, dateKey)),
+      setRole: (dateKey, roleKey, value) => commit((s) => setRole(s, dateKey, roleKey, value)),
+      setReflection: (dateKey, text) => commit((s) => setReflection(s, dateKey, text)),
+      dismissSetupBar: (dateKey) => commit((s) => dismissSetupBar(s, dateKey)),
       // Validate synchronously (code-only, no state needed) so the boolean
       // return is reliable; persist only on success via the single write point.
       signOff: (toTier, code) => {
