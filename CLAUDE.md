@@ -34,20 +34,33 @@ cross-team visibility — and none is planned for Phase 1.
 - **No offline-caching service worker** in this phase — season content changes and
   must never serve stale. Do not add one without revisiting this.
 
-## The four categories (content model)
+## The five categories (content model)
 
-The hub is a tab row over four categories. Every category is a flat list of
-**items**; every item opens a detail sheet that ends in a **team strategy notes**
-box. That box is the only team-authored data an item carries.
+The hub is a tab row over **five** categories. Each category declares a `kind`
+that says how it renders and what it stores:
 
-| Category | id | Items | Source file |
-|---|---|---|---|
-| Robot Game Missions | `missions` | M01–M15 + Equipment Inspection + Precision Tokens | `src/state/missions.js` |
-| Core Values | `core-values` | CV1–CV8 | `src/state/content.js` |
-| Innovation Project | `project` | IP1–IP7 | `src/state/content.js` |
-| Build & Programming | `build` | BP1–BP9 | `src/state/content.js` |
+- **`kind: 'items'`** — the original pattern, used by four categories. A flat list
+  of **items**; every item opens a detail sheet that ends in a **team strategy
+  notes** box. That box is the only team-authored data an item carries.
+- **`kind: 'media'`** — used by the one Video & Resource Library category. A
+  curated jump-off list of external links. **No strategy notes, no detail sheet,
+  no team data of any kind**, so its entries never enter `ITEM_INDEX` and are not
+  reachable through `getItem` / `ALL_ITEMS`.
 
-Shared item shape (one card component + one detail component renders all four):
+| Category | id | kind | Contents | Source file |
+|---|---|---|---|---|
+| Robot Game Missions | `missions` | items | M01–M15 + Equipment Inspection + Precision Tokens | `src/state/missions.js` |
+| Core Values | `core-values` | items | CV1–CV8 | `src/state/content.js` |
+| Innovation Project | `project` | items | IP1–IP7 | `src/state/content.js` |
+| Build & Programming | `build` | items | BP1–BP9 | `src/state/content.js` |
+| Video & Resource Library | `media` | media | 11 external videos + PDF guides | `src/state/resources.js` (`MEDIA_ITEMS`) |
+
+`content.js` also exports **`ITEM_CATEGORIES`** — `CATEGORIES` filtered to
+`kind === 'items'`. Anything that walks categories expecting notes, items, or
+`resourceId` must use that, not `CATEGORIES` (the mentor page does).
+
+Shared item shape for the four `items` categories (one card component + one
+detail component renders all four):
 
 ```
 {
@@ -63,6 +76,34 @@ Shared item shape (one card component + one detail component renders all four):
   resourceId?    // optional key into resources.js for the "Go deeper" link
 }
 ```
+
+Media entry shape for the `media` category (see `MEDIA_ITEMS` in `resources.js`):
+
+```
+{
+  id,          // React key only — NO team data is stored against it
+  kind,        // 'video' | 'guide' — drives the leading marker: ▶ play vs "Guide" badge
+  title,       // authored, kid-facing label (not always the raw upload title)
+  subtitle?,   // one line of context (e.g. "General coaching content, not season-specific")
+  source,      // the creator: YouTube channel name, or PrimeLessons / FLL Tutorials
+  url,         // verified deep link
+  topics,      // MEDIA_TOPICS keys — an entry MAY carry more than one
+  series?,     // MEDIA_SERIES id grouping a sequential run
+  step?        // 1-based position within that series
+}
+```
+
+**Media UI** (`MediaList.jsx`, rendered inline by `Hub.jsx` when
+`category.kind === 'media'`). A row of **multi-select toggle chips** sits above
+the list — one per `MEDIA_TOPICS` entry, **all active by default**; an entry shows
+if it carries **any** active topic, so a multi-tagged entry appears under either
+chip. With every chip off the list is empty and an inline note says so. After
+filtering, consecutive entries sharing a `series` id are collected into one
+numbered block under the series header, so a sequential run is never shuffled and
+either shows whole or not at all. Cards are compact and terminal: title, optional
+subtitle, source chip, topic chips, and an external link — no detail sheet, no
+notes box. `kind` drives a deliberately distinct leading marker (a round gold ▶
+for video, a rectangular green **Guide** badge for PDFs).
 
 **Mission data provenance:** the official BIOGLOW Robot Game Rulebook (released
 2026-08-04). `pointsLabel` is authored, not derived — several missions score "each"
@@ -82,10 +123,11 @@ All reads/writes of persisted state flow through **one module**:
 - `src/state/config.js` — `STORAGE_KEY`, `STATE_VERSION`, `SEASON`, `NOTE_MAX`,
   `ROSTER_MAX`.
 - `src/state/missions.js` — BIOGLOW robot game content.
-- `src/state/content.js` — the four `CATEGORIES` + the three non-mission item
-  lists, plus `getItem` / `getCategory` lookups.
-- `src/state/resources.js` — all external "Go deeper" deep links + mentor-page
-  links + attribution string, in one place.
+- `src/state/content.js` — the five `CATEGORIES` (+ `ITEM_CATEGORIES`) + the three
+  non-mission item lists, plus `getItem` / `getCategory` lookups. Media entries
+  are excluded from `ITEM_INDEX` — they hold no team data.
+- `src/state/resources.js` — all external "Go deeper" deep links + the media
+  library + mentor-page links + attribution string, in one place.
 - `src/state/troubleshooter.js` — "Stuck?" symptom/checklist content.
 
 ### Persistence schema
@@ -184,17 +226,30 @@ one-file change.
 
   Also exported: `TOPICS`, `MENTOR_LINK_IDS`, `ATTRIBUTION`, and helpers
   `resourceById(id)`, `resourcesForTopic(topicKey)`, `mentorLinks()`.
-- **Three consumers, all by id:** an item's `resourceId` → "Go deeper" deep link
-  (optional), the student **Resource Library** page, and the mentor page.
+- **Three consumers of `RESOURCES`, all by id:** an item's `resourceId` → "Go
+  deeper" deep link (optional), the student **Resource Library** page, and the
+  mentor page.
+- **`MEDIA_ITEMS` is a separate export in the same file**, backing the Video &
+  Resource Library category. Same "one file owns every external link" rule, but
+  deliberately not folded into `RESOURCES`: the shape differs (`kind`, `series`,
+  multiple `topics`, no in-app item behind it) and it must never leak into
+  `resourceById` / `resourcesForTopic` / `mentorLinks`. Also exported:
+  `MEDIA_TOPICS`, `MEDIA_SERIES`, `mediaTopicLabel(key)`.
 - **Resource Library** (hash route `#/resources`) — pure free-browse: no gating,
   no progress. Topics are banded section headers; under each, resource cards open
   the deep link in a new tab. Reachable from the menu and from a slim on-hub bar.
+  It is a **separate surface from the media category**: the library page browses
+  `RESOURCES`, the media tab browses `MEDIA_ITEMS`.
 - `/mentor-resources` (hash route `#/mentor-resources`) lists every item that has
-  a deep link, grouped by category, plus the mentor-only links.
-- **Link policy:** every configured URL was verified to return 200 (2026-06-29).
-  If one dies, fall back to the relevant index (`prime-index` Lessons.html or
-  `fllt-index` category.html) and add `// TODO verify-link`. Never ship a dead
-  link. Link only — never copy PrimeLessons / FLL Tutorials content into the app.
+  a deep link, grouped by category, plus the mentor-only links. It walks
+  `ITEM_CATEGORIES`, so the media category is correctly skipped.
+- **Link policy:** every `RESOURCES` URL was verified to return 200 (2026-06-29);
+  every `MEDIA_ITEMS` URL on 2026-08-07 (PDFs fetched directly, videos via the
+  YouTube oEmbed endpoint). If one dies, fall back to the relevant index
+  (`prime-index` Lessons.html or `fllt-index` category.html) and add
+  `// TODO verify-link`; for a dead media entry, replace or drop it. Never ship a
+  dead link. Link only — never copy PrimeLessons / FLL Tutorials content, or
+  embed video, into the app.
 
 ## Tour + session check-in
 
@@ -229,14 +284,16 @@ src/
   state/
     config.js           constants (STORAGE_KEY, SEASON, NOTE_MAX, ROSTER_MAX)
     missions.js         BIOGLOW robot game content (M01–M15 + match basics)
-    content.js          the four CATEGORIES + Core Values / Project / Build items
-    resources.js        SINGLE source of truth for external links
+    content.js          the five CATEGORIES (+ ITEM_CATEGORIES) + Core Values /
+                        Project / Build items
+    resources.js        SINGLE source of truth for external links: RESOURCES
+                        (per-item + library) and MEDIA_ITEMS (media category)
     troubleshooter.js   "Stuck?" content
     state.js            SINGLE state module (only localStorage I/O + all mutators)
     useTeamState.js     React hook over state.js
   components/           Onboarding, RosterEditor, Hub, MissionCard, MissionDetail,
-                        Troubleshooter, Menu, MentorResources, ResourceLibrary,
-                        TodayCheckin, SiteTour, DailyRhythm, Modal
+                        MediaList, Troubleshooter, Menu, MentorResources,
+                        ResourceLibrary, TodayCheckin, SiteTour, DailyRhythm, Modal
   styles/               tokens.css (branding), app.css
 public/
   manifest.webmanifest, icons/   (PWA install assets)

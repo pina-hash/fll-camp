@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// SKILL HUB CONTENT — the four open categories.
+// SKILL HUB CONTENT — the five open categories.
 //
 // Nothing here is gated. Every item is browsable from day one; the only team
 // data an item carries is its strategy note (state.notes[item.id]).
@@ -12,9 +12,15 @@
 //   lesson      the in-app teaching — must stand alone, kids never need to leave
 //   prompt      the question the strategy-notes box asks
 //   resourceId  optional — a key in resources.js for the "Go deeper" link
+//
+// Four categories use that item shape (kind: 'items'). The fifth, the Video &
+// Resource Library, is kind: 'media' — a curated list of external links with no
+// notes, no lesson and no detail sheet; its entries live in resources.js as
+// MEDIA_ITEMS and are deliberately kept out of ITEM_INDEX.
 // ---------------------------------------------------------------------------
 
 import { ROBOT_GAME_ITEMS } from './missions.js';
+import { MEDIA_ITEMS } from './resources.js';
 
 export const CORE_VALUES_ITEMS = [
   {
@@ -250,10 +256,18 @@ export const BUILD_ITEMS = [
   },
 ];
 
-/** The four open categories, in display order. */
+/** The open categories, in display order.
+ *
+ *  `kind` says how the category renders and what it stores:
+ *    'items' — the item-card pattern: a card per item, a detail sheet, and a team
+ *              strategy note keyed by item.id. Four categories use this.
+ *    'media' — a curated jump-off list of external videos and guides, filtered by
+ *              topic chips. No detail sheet, no strategy notes, no team data at
+ *              all; its entries live in resources.js and never enter ITEM_INDEX. */
 export const CATEGORIES = [
   {
     id: 'missions',
+    kind: 'items',
     label: 'Robot Game Missions',
     short: 'Missions',
     icon: '🤖',
@@ -264,6 +278,7 @@ export const CATEGORIES = [
   },
   {
     id: 'core-values',
+    kind: 'items',
     label: 'Core Values',
     short: 'Core Values',
     icon: '🤝',
@@ -274,6 +289,7 @@ export const CATEGORIES = [
   },
   {
     id: 'project',
+    kind: 'items',
     label: 'Innovation Project',
     short: 'Project',
     icon: '🌱',
@@ -284,6 +300,7 @@ export const CATEGORIES = [
   },
   {
     id: 'build',
+    kind: 'items',
     label: 'Build & Programming',
     short: 'Build & Code',
     icon: '🛠️',
@@ -292,12 +309,30 @@ export const CATEGORIES = [
       'The skills every mission depends on. Each one has a short lesson, and most link out to a full guide from PrimeLessons or FLL Tutorials.',
     items: BUILD_ITEMS,
   },
+  {
+    id: 'media',
+    kind: 'media',
+    label: 'Video & Resource Library',
+    short: 'Videos',
+    icon: '🎬',
+    tagline: 'Watch and read — no notes to write',
+    intro:
+      'A jump-off list of videos and guides from outside this app. Filter by topic with the chips below, then tap anything to open it in a new tab. Nothing here asks you to write strategy notes — it is here to teach you a skill fast.',
+    entries: MEDIA_ITEMS,
+  },
 ];
+
+/** The item-card categories — the four that carry strategy notes. */
+export const ITEM_CATEGORIES = CATEGORIES.filter((cat) => cat.kind === 'items');
 
 // ---- lookup helpers -------------------------------------------------------
 
+// Only item categories are indexed: media entries are not items, carry no team
+// data, and must never be reachable through getItem / ALL_ITEMS.
 const ITEM_INDEX = Object.fromEntries(
-  CATEGORIES.flatMap((cat) => cat.items.map((item) => [item.id, { ...item, categoryId: cat.id }]))
+  ITEM_CATEGORIES.flatMap((cat) =>
+    cat.items.map((item) => [item.id, { ...item, categoryId: cat.id }])
+  )
 );
 
 /** Every item across every category (flat), in display order. */

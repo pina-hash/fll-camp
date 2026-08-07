@@ -1,10 +1,11 @@
-import { CATEGORIES } from '../state/content.js';
+import { ITEM_CATEGORIES } from '../state/content.js';
 import { resourceById, mentorLinks, ATTRIBUTION } from '../state/resources.js';
 import { SEASON } from '../state/config.js';
 
 // Standalone reference page (route #/mentor-resources). Maps every Skill Hub
 // item that has a deep link to it, plus the mentor-only references. Linked from
-// the team menu.
+// the team menu. Only the item categories are walked — the Video & Resource
+// Library category is itself a list of links, so it has nothing to map.
 export default function MentorResources({ onBack }) {
   return (
     <div className="page">
@@ -24,7 +25,7 @@ export default function MentorResources({ onBack }) {
           mentor-only references.
         </p>
 
-        {CATEGORIES.map((cat) => {
+        {ITEM_CATEGORIES.map((cat) => {
           const linked = cat.items.filter((item) => resourceById(item.resourceId));
           if (linked.length === 0) return null;
           return (

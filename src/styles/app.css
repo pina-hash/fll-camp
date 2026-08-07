@@ -1478,6 +1478,12 @@ h3 {
   background: var(--gold-pale);
   border: 1px solid var(--gold-soft);
 }
+/* Topic tag on a media card — green, so it reads apart from the source chip. */
+.chip--topic {
+  color: var(--green-dark);
+  background: var(--green-tint);
+  border: 1px solid var(--green-mid);
+}
 
 /* ---- On-ladder entry bar (Browse the Resource Library) -------------------- */
 .library-bar {
@@ -2102,7 +2108,7 @@ h3 {
   gap: 1.1rem;
 }
 
-/* Category tabs: a horizontally scrollable row of four. */
+/* Category tabs: a horizontally scrollable row of five. */
 .cat-tabs {
   display: flex;
   gap: 0.5rem;
@@ -2478,4 +2484,219 @@ h3 {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-soft);
+}
+
+/* ===========================================================================
+   VIDEO & RESOURCE LIBRARY — the media category (kind: 'media')
+   A jump-off list, not item cards: no notes, no detail sheet, no drill-down.
+   =========================================================================== */
+
+/* Screen-reader-only text (kind + "opens in a new tab" on media links). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.medlib {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ---- Topic filter chips: multi-select toggles, all on by default ---------- */
+.medchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.medchip {
+  /* Slightly under --tap: five of these wrap to three rows on a phone, and a
+     48px pill row would crowd the list out. 44px keeps them comfortably tappable. */
+  min-height: 44px;
+  padding: 0.35rem 0.8rem;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.medchip--on {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--gold);
+}
+.medchip:active {
+  transform: scale(0.97);
+}
+
+.medlib__empty {
+  margin: 0;
+  padding: 0.9rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  background: var(--card-bg);
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+}
+
+.medlib__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.medlib__items,
+.medseries__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* ---- Sequential run (the SPIKE 101 series) — numbered, never shuffled ----- */
+.medseries {
+  padding: 0.7rem;
+  background: var(--gold-pale);
+  border: 2px solid var(--gold-soft);
+  border-radius: var(--radius);
+}
+.medseries__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0 0 0.6rem;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--black);
+}
+.medseries__note {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink-soft);
+}
+
+/* ---- Media card: title, source, topic tags, external link ---------------- */
+.medcard {
+  background: var(--card-bg);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.medcard__link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-height: 56px;
+  padding: 0.7rem 0.8rem;
+  text-decoration: none;
+}
+.medcard__link:active {
+  transform: scale(0.995);
+}
+
+/* Leading kind marker — a round play icon for video, a square-ish "Guide"
+   badge for text guides, so the two are distinguishable at a glance. */
+.medcard__kind {
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+.medcard__kind--video {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  color: var(--black);
+  background: var(--gold);
+  border: 1.5px solid var(--gold-deep);
+}
+.medcard__kind--guide {
+  width: 46px;
+  height: 26px;
+  border-radius: 6px;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--green-dark);
+  background: var(--green-tint);
+  border: 1.5px solid var(--green-mid);
+}
+
+.medcard__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1;
+}
+.medcard__titlerow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+.medcard__step {
+  flex: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--black);
+  background: var(--gold);
+  border-radius: 6px;
+  padding: 0.05rem 0.4rem;
+}
+.medcard__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.18;
+  color: var(--black);
+}
+.medcard__sub {
+  font-size: 0.84rem;
+  line-height: 1.3;
+  color: var(--ink-soft);
+}
+.medcard__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.15rem;
+}
+.medcard__go {
+  flex: none;
+  align-self: center;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--green-dark);
+  background: var(--green-tint);
+  border: 1.5px solid var(--green-mid);
 }

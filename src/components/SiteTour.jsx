@@ -14,8 +14,8 @@ const STEPS = [
     echo: 'wordmark',
   },
   {
-    title: 'Four categories',
-    body: 'Tap a tab to switch between the Robot Game missions, Core Values, the Innovation Project, and Build & Code. Browse them in any order, any time.',
+    title: 'Five categories',
+    body: 'Tap a tab to switch between the Robot Game missions, Core Values, the Innovation Project, Build & Code, and the Video & Resource Library. Browse them in any order, any time.',
     echo: 'cats',
   },
   {

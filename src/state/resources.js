@@ -171,6 +171,174 @@ export const RESOURCES = {
 /** Resource ids shown in the mentor page's "Mentor-only references" section. */
 export const MENTOR_LINK_IDS = ['coachs-guide', 'prime-index', 'fllt-index'];
 
+// ===========================================================================
+// MEDIA LIBRARY — the "Video & Resource Library" hub category.
+//
+// A curated jump-off list, NOT item cards: these entries carry no strategy note,
+// no lesson, and no detail sheet. A compact card (title, source, topic tags,
+// external link) is the whole affordance. They live here because resources.js is
+// the single source of truth for every external link, but they are deliberately
+// a separate export from RESOURCES: their shape differs (kind, series, multiple
+// topics, no in-app item behind them) and they must never leak into
+// resourceById / resourcesForTopic / mentorLinks.
+//
+// Entry shape:
+//   id       stable key (React key only — no team data is stored against it)
+//   kind     'video' | 'guide'   drives the leading marker: ▶ play vs "Guide" badge
+//   title    the authored, kid-facing label (not always the raw upload title)
+//   subtitle optional one line of context under the title
+//   source   the creator — YouTube channel name, or PrimeLessons / FLL Tutorials
+//   url      verified deep link
+//   topics   MEDIA_TOPICS keys; an entry may carry more than one
+//   series   optional id grouping a sequential run (see MEDIA_SERIES)
+//   step     position within that series, 1-based
+//
+// LINK POLICY (same as RESOURCES): every URL below returned 200 on 2026-08-07 —
+// the two PDFs fetched directly, the nine videos via the YouTube oEmbed endpoint.
+// If one dies, replace it or drop the entry; never ship a dead link.
+// ===========================================================================
+
+/** Filter chips above the media list, in display order. Multi-select; all on by
+ *  default; an entry shows if it carries ANY active topic. */
+export const MEDIA_TOPICS = [
+  { key: 'robot-build', label: 'Robot Build' },
+  { key: 'programming-basics', label: 'Programming Basics' },
+  { key: 'driving-sensors', label: 'Driving & Sensors' },
+  { key: 'core-values', label: 'Core Values' },
+  { key: 'innovation-project', label: 'Innovation Project' },
+];
+
+/** Sequential runs: entries sharing a `series` id build on each other and are
+ *  rendered as a numbered mini-series under this header, never shuffled. */
+export const MEDIA_SERIES = {
+  'spike-101': {
+    id: 'spike-101',
+    label: 'SPIKE Prime Programming for Beginners',
+    note: 'Six parts, in order — each one builds on the last.',
+  },
+};
+
+/** The media library, in display order. */
+export const MEDIA_ITEMS = [
+  // ---- Robot Build ----
+  {
+    id: 'med-ultimate-robot',
+    kind: 'video',
+    title: '5 Simple Tips to Build the Ultimate FLL Robot',
+    subtitle: "Companion video to the team's starter-bot Drive instructions.",
+    source: 'Zain Khan',
+    url: 'https://www.youtube.com/watch?v=4aHr97Xof34',
+    topics: ['robot-build'],
+  },
+
+  // ---- Programming Basics: the SPIKE 101 series, watch in order ----
+  {
+    id: 'med-prog-1',
+    kind: 'video',
+    title: "SPIKE Prime Programming 101 — What You'll Learn & Why It Matters",
+    source: 'GummyBears Robotics',
+    url: 'https://www.youtube.com/watch?v=fNjZFMIFY0E',
+    topics: ['programming-basics'],
+    series: 'spike-101',
+    step: 1,
+  },
+  {
+    id: 'med-prog-2',
+    kind: 'video',
+    title: 'Setup + Block Coding Basics',
+    source: 'GummyBears Robotics',
+    url: 'https://www.youtube.com/watch?v=lMQ2BrV6XC4',
+    topics: ['programming-basics'],
+    series: 'spike-101',
+    step: 2,
+  },
+  {
+    id: 'med-prog-3',
+    kind: 'video',
+    title: 'Motors and DriveTrain',
+    source: 'GummyBears Robotics',
+    url: 'https://www.youtube.com/watch?v=fulg2fzzPDY',
+    topics: ['programming-basics'],
+    series: 'spike-101',
+    step: 3,
+  },
+  {
+    id: 'med-prog-4',
+    kind: 'video',
+    title: 'Basic Turns',
+    source: 'GummyBears Robotics',
+    url: 'https://www.youtube.com/watch?v=AFrqL8DzpVQ',
+    topics: ['programming-basics'],
+    series: 'spike-101',
+    step: 4,
+  },
+  {
+    id: 'med-prog-5',
+    kind: 'video',
+    title: 'Logic Statements',
+    source: 'GummyBears Robotics',
+    url: 'https://www.youtube.com/watch?v=2gbNfkL1JcA',
+    topics: ['programming-basics'],
+    series: 'spike-101',
+    step: 5,
+  },
+  {
+    id: 'med-prog-6',
+    kind: 'video',
+    title: 'Introduction to Sensors',
+    source: 'GummyBears Robotics',
+    url: 'https://www.youtube.com/watch?v=pXRrFweAZVo',
+    topics: ['programming-basics'],
+    series: 'spike-101',
+    step: 6,
+  },
+
+  // ---- Driving & Sensors: text guides, not video ----
+  {
+    id: 'med-gyro-straight',
+    kind: 'guide',
+    title: 'Gyro Move Straight',
+    subtitle: 'PDF lesson — hold a straight heading with the gyro.',
+    source: 'PrimeLessons',
+    url: `${PRIME}/GyroMoveStraight.pdf`,
+    topics: ['driving-sensors'],
+  },
+  {
+    id: 'med-prog-quick-guide',
+    kind: 'guide',
+    title: 'Programming Skills Quick Guide',
+    subtitle: 'PDF — line following and aligning on a line.',
+    source: 'FLL Tutorials',
+    url: `${FLLT}/translations/en-us/RobotGame/ProgrammingQuickGuide.pdf`,
+    topics: ['driving-sensors'],
+  },
+
+  // ---- Core Values / Innovation Project: coach-training talks ----
+  {
+    id: 'med-coach-workshop',
+    kind: 'video',
+    title: "FLL Coaches' Workshop: Innovation Project and Core Values",
+    subtitle: 'General coaching content, not season-specific.',
+    source: 'ASU Engineering Outreach',
+    url: 'https://www.youtube.com/watch?v=9on7e7eOiBk',
+    topics: ['core-values', 'innovation-project'],
+  },
+  {
+    id: 'med-coach-training-6',
+    kind: 'video',
+    title: 'FLL Challenge Coach Training #6: Innovation Project, Core Values, Robot Design',
+    subtitle: 'General coaching content, not season-specific.',
+    source: 'High Tech Kids',
+    url: 'https://www.youtube.com/watch?v=2pkFxNcE_SI',
+    topics: ['core-values', 'innovation-project'],
+  },
+];
+
+/** Label for a media topic key (falls back to the raw key). */
+export function mediaTopicLabel(key) {
+  return MEDIA_TOPICS.find((t) => t.key === key)?.label ?? key;
+}
+
 export const ATTRIBUTION =
   'Skill lessons by PrimeLessons.org (CC-BY-NC-SA). Mission tutorials by FLL Tutorials.';
 
