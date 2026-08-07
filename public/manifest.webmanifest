@@ -1,7 +1,7 @@
 {
-  "name": "DBTI FLL Summer Camp — Mission Hub",
-  "short_name": "FLL Mission Hub",
-  "description": "Self-paced, gated quest climb for DBTI FLL Summer Camp robotics teams.",
+  "name": "DBTI FLL — Season Skill Hub",
+  "short_name": "FLL Skill Hub",
+  "description": "Open season skill hub for DBTI FLL teams — BIOGLOW missions, Core Values, Innovation Project, and robot skills.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

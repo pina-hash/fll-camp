@@ -8,7 +8,7 @@ import {
 
 // "Stuck?" overlay. Each symptom expands to a tap-to-tick checklist. Only once
 // every check for a symptom is ticked does the escalation ("Raise your hand" +
-// Request a Mentor) appear — pushing campers to work the checks first.
+// Request a Mentor) appear — pushing teams to work the checks first.
 export default function Troubleshooter({ onClose, needsMentor, onRequestMentor }) {
   const [openId, setOpenId] = useState(null);
   // ephemeral tick state: { [symptomId]: { [checkIdx]: true } }

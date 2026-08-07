@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
 import DailyRhythm from './DailyRhythm.jsx';
+import { SEASON } from '../state/config.js';
 
-// Daily check-in page (route #/today). Roles + end-of-day reflection for the
-// current local date, autosaving into team.dailyLog. Reuses the existing
+// Session check-in page (route #/today). Roles + end-of-session reflection for
+// the current local date, autosaving into team.dailyLog. Reuses the existing
 // DailyRhythm reference element. Built like the other standalone pages
 // (#/resources, #/mentor-resources): editorial header band + page shell.
 
@@ -20,7 +21,7 @@ const ROLES = [
     label: 'Operator',
     kicker: 'Pair A · Kit 1 · Run Robot',
     job: 'You run the robot on the field.',
-    now: 'Place the robot in the exact same start spot every run. Launch, then watch closely. Tell your Coder exactly what happened: did it score, where did it drift, what to fix. Log the run in the quest.',
+    now: 'Place the robot in the exact same start spot every run. Launch, then watch closely. Tell your Coder exactly what happened: did it score, where did it drift, what to fix. Add what you learn to the mission’s strategy notes.',
   },
   {
     key: 'protoBuilder',
@@ -57,8 +58,8 @@ export default function TodayCheckin({ entry, friendlyDate, onBack, onSetRole, o
           ←
         </button>
         <div>
-          <p className="page__kicker">DBTI FLL Summer Camp</p>
-          <h1 className="page__title">Today</h1>
+          <p className="page__kicker">DBTI FLL · {SEASON}</p>
+          <h1 className="page__title">This Session</h1>
         </div>
       </header>
 
@@ -67,9 +68,9 @@ export default function TodayCheckin({ entry, friendlyDate, onBack, onSetRole, o
 
         {/* ---- Roles ---- */}
         <section className="reslist">
-          <h2 className="reslist__head">Today's Roles</h2>
+          <h2 className="reslist__head">Session Roles</h2>
           <p className="page__intro">
-            Type who is doing each job today. Swap jobs day to day so everyone gets a turn.
+            Type who is doing each job today. Swap jobs session to session so everyone gets a turn.
           </p>
 
           <div className="role-inputs">
@@ -147,15 +148,17 @@ export default function TodayCheckin({ entry, friendlyDate, onBack, onSetRole, o
 
         {/* ---- Rhythm (reuses the existing reference element) ---- */}
         <section className="reslist">
-          <h2 className="reslist__head">Today's Rhythm</h2>
+          <h2 className="reslist__head">Session Rhythm</h2>
           <DailyRhythm />
         </section>
 
         {/* ---- Reflection ---- */}
         <section className="reslist">
-          <h2 className="reslist__head">End of Day</h2>
+          <h2 className="reslist__head">End of Session</h2>
           <label className="field">
-            <span className="field__label">What worked today, and what will you fix tomorrow?</span>
+            <span className="field__label">
+              What worked today, and what will you fix next session?
+            </span>
             <textarea
               className="answer__input today__reflection"
               value={entry.reflection ?? ''}

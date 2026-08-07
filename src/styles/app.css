@@ -1413,7 +1413,7 @@ h3 {
   border-radius: 12px;
   padding: 0.7rem 0.85rem;
 }
-.resrow__quest {
+.resrow__item {
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
@@ -2091,4 +2091,391 @@ h3 {
 }
 .setup-bar__dismiss:active {
   transform: scale(0.96);
+}
+
+/* ===========================================================================
+   SKILL HUB — open, browsable categories (no locks, no gating)
+   =========================================================================== */
+.hub {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+/* Category tabs: a horizontally scrollable row of four. */
+.cat-tabs {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.cat-tabs::-webkit-scrollbar {
+  display: none;
+}
+.cat-tab {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  min-height: var(--tap);
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.cat-tab--on {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--gold);
+}
+.cat-tab__icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.cat-tab__label {
+  white-space: nowrap;
+}
+
+/* Category band header — same editorial system as the old week-arcs. */
+.hub-group__head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: var(--black);
+  padding: 0.6rem 0.9rem;
+  border-left: 6px solid var(--gold);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.7rem;
+}
+.hub-group__tag {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--green-dark);
+  background: var(--green-tint);
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  vertical-align: middle;
+}
+.hub-group__intro {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0 0 0.9rem;
+}
+.hub-group__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+/* Item card — a mission, a value, a project step, a robot skill. */
+.mcard {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.85rem 0.9rem;
+  background: var(--card-bg);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.mcard:active {
+  transform: translateY(1px);
+}
+.mcard--noted {
+  border-color: var(--green-mid);
+}
+.mcard__badge {
+  flex: 0 0 auto;
+  min-width: 3.4rem;
+  padding: 0.35rem 0.4rem;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--gold);
+  background: var(--black);
+  border-radius: var(--radius-sm);
+}
+.mcard--noted .mcard__badge {
+  color: var(--black);
+  background: var(--gold);
+}
+.mcard__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.mcard__titlerow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.mcard__title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.mcard__pts {
+  flex: 0 0 auto;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+  background: var(--gold-pale);
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  white-space: nowrap;
+}
+.mcard__desc {
+  font-size: 0.87rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.mcard__noteflag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--green-dark);
+}
+.mcard__go {
+  flex: 0 0 auto;
+  align-self: center;
+  font-size: 1.4rem;
+  color: var(--locked-ink);
+}
+
+/* ---- item detail sheet ---- */
+.mdetail__desc {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0 0 1rem;
+}
+.mdetail__head {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin: 1.3rem 0 0.6rem;
+}
+.mdetail__prompt {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0 0 0.5rem;
+}
+.mdetail__attribution {
+  margin-top: 1.6rem;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  color: var(--locked-ink);
+}
+
+/* ---- scoring table ---- */
+.scoring {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.scoring__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.6rem 0.8rem;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--line);
+}
+.scoring__row:last-child {
+  border-bottom: none;
+}
+.scoring__row--bonus {
+  background: var(--gold-pale);
+}
+.scoring__label {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.scoring__pts {
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--black);
+}
+.scoring__row--bonus .scoring__pts {
+  color: var(--gold-deep);
+}
+
+.caveats {
+  list-style: none;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.caveat {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--ink);
+  background: #fdf3e7;
+  border-left: 4px solid var(--bronze);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.7rem;
+}
+
+/* ---- strategy notes ---- */
+.notes__input {
+  min-height: 7.5rem;
+}
+.notes__hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.75rem;
+  color: var(--locked-ink);
+}
+
+/* ---- roster ---- */
+.roster-field {
+  border: none;
+  padding: 0;
+  margin: 0 0 1.1rem;
+}
+.roster__list {
+  list-style: none;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.roster__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--card-bg);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.roster__name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+  word-break: break-word;
+}
+.roster__remove {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.roster__remove:active {
+  background: var(--line);
+}
+.roster__empty {
+  font-size: 0.85rem;
+  color: var(--locked-ink);
+  padding: 0.2rem 0;
+}
+.roster__add {
+  display: flex;
+  gap: 0.5rem;
+}
+.roster__input {
+  flex: 1;
+  min-width: 0;
+}
+.roster__addbtn {
+  flex: 0 0 auto;
+  padding-inline: 1.1rem;
+}
+
+/* ---- session rhythm (Fri + Sat) ---- */
+.rhythm__session {
+  margin: 0.8rem 0 0.3rem;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+}
+
+/* ---- tour echoes for the new screens ---- */
+.echo-cats {
+  overflow: visible;
+  transform: scale(0.9);
+}
+.echo-cats .cat-tab {
+  cursor: default;
+}
+.echo-mcard {
+  width: 100%;
+  cursor: default;
+  box-shadow: none;
+}
+.echo-notes {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.7rem 0.8rem;
+  background: var(--card-bg);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.echo-notes__label {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }

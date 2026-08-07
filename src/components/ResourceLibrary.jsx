@@ -1,8 +1,9 @@
 import { TOPICS, resourcesForTopic, ATTRIBUTION } from '../state/resources.js';
+import { SEASON } from '../state/config.js';
 
 // Student Resource Library (route #/resources). Pure free-browse: no gating, no
 // progress tracking. Topics are banded section headers (same editorial system as
-// the week-arcs); under each, resource cards open the deep link in a new tab. A
+// the hub categories); under each, resource cards open the deep link in a new tab. A
 // closing "More" group holds the two index pages, and a line points kids back to
 // the Stuck troubleshooter. Built the same way as the /mentor-resources page.
 export default function ResourceLibrary({ onBack, onOpenTroubleshooter }) {
@@ -15,7 +16,7 @@ export default function ResourceLibrary({ onBack, onOpenTroubleshooter }) {
           ←
         </button>
         <div>
-          <p className="page__kicker">DBTI FLL Summer Camp</p>
+          <p className="page__kicker">DBTI FLL · {SEASON}</p>
           <h1 className="page__title">Resource Library</h1>
         </div>
       </header>

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // "Stuck?" troubleshooter content. Symptom checklists are an ephemeral working
-// aid (not persisted) — campers work the checks one at a time before raising
+// aid (not persisted) — teams work the checks one at a time before raising
 // a hand. Only after every check for a symptom is ticked does the app reveal
 // the "Raise your hand" / Request-a-Mentor escalation.
 // ---------------------------------------------------------------------------

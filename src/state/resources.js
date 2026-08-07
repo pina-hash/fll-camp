@@ -3,7 +3,7 @@
 //
 // `RESOURCES` is keyed by a stable resource `id`. Everything that points off-app
 // references an entry by id so nothing is ever duplicated:
-//   - per-quest "Go deeper" deep links   (QUEST_RESOURCE_IDS, resourceFor)
+//   - per-item "Go deeper" deep links     (item.resourceId in content.js -> resourceById)
 //   - the student Resource Library page   (TOPICS + resourcesForTopic, #/resources)
 //   - the mentor reference page           (MENTOR_LINK_IDS, #/mentor-resources)
 //
@@ -15,10 +15,9 @@
 //   topics   browse-topic keys it appears under on the library page ([] = not browsed)
 //   audience 'student' | 'mentor'
 //
-// Each quest's PRIMARY teaching is still its in-app micro-lesson (`lesson` in
-// quests.js). These deep links are the OPTIONAL, secondary "Go deeper" — they
-// never gate completion. The Resource Library is pure free-browse: no gating,
-// no progress.
+// Each Skill Hub item's PRIMARY teaching is its in-app lesson (`lesson` in
+// content.js). These deep links are the OPTIONAL, secondary "Go deeper". The
+// whole hub is free-browse: no gating, no progress, nothing locked.
 //
 // LINK POLICY — every URL below was fetched and returned 200 (2026-06-29). If a
 // link dies, fall back to the relevant index (`prime-index` Lessons.html or
@@ -38,7 +37,7 @@ export const TOPICS = [
   { key: 'driving', label: 'Driving & Turning' },
   { key: 'sensors', label: 'Sensors & Lines' },
   { key: 'building', label: 'Building & Attachments' },
-  { key: 'missions', label: 'The Missions (UNEARTHED)' },
+  { key: 'missions', label: 'The Missions' },
   { key: 'strategy', label: 'Strategy & Reliability' },
 ];
 
@@ -92,7 +91,7 @@ export const RESOURCES = {
   'learn-missions': {
     id: 'learn-missions',
     title: 'Learn the missions',
-    blurb: 'Read each UNEARTHED mission and what scores points.',
+    blurb: 'How to read a mission and work out what scores points.',
     source: 'FLL Tutorials',
     url: `${FLLT}/en/worksheets/2020/07/15/Learn-the-Missions.html`,
     topics: ['missions'],
@@ -146,7 +145,7 @@ export const RESOURCES = {
     audience: 'student',
   },
 
-  // ---- Quest-only deep links (not surfaced on the browse page) ----
+  // ---- Item-only deep links (not surfaced on the browse page) ----
   'moving-straight': {
     id: 'moving-straight',
     title: 'Moving Straight',
@@ -160,7 +159,7 @@ export const RESOURCES = {
   // ---- Mentor-only references ----
   'coachs-guide': {
     id: 'coachs-guide',
-    title: "UNEARTHED Coach's Guide",
+    title: "Coach's Guide",
     blurb: 'Season overview and coaching notes for mentors.',
     source: 'FLL Tutorials',
     url: `${FLLT}/en/worksheets/2020/07/17/Unofficial-Guide.html`,
@@ -169,36 +168,15 @@ export const RESOURCES = {
   },
 };
 
-/** questId -> resource id. Quests not listed simply show no deep link.
- *  These map back to the exact same URLs the per-quest links used before. */
-export const QUEST_RESOURCE_IDS = {
-  // ----- Rookie -----
-  R1: 'droidbot-m',
-  R2: 'block-guide',
-  R3: 'moving-straight',
-  R4: 'accurate-turning',
-  R5: 'reliability',
-  R6: 'droidbot-m',
-  R7: 'learn-missions',
-  R8: 'reliability',
-  R9: 'droidbot-m',
-  R10: 'learn-missions',
-  R11: 'brainstorming',
-  RX: 'line-follower',
-  // ----- Veteran (most lean on the mentor page; only V7 has a precise link) -----
-  V7: 'brainstorming',
-};
-
 /** Resource ids shown in the mentor page's "Mentor-only references" section. */
 export const MENTOR_LINK_IDS = ['coachs-guide', 'prime-index', 'fllt-index'];
 
 export const ATTRIBUTION =
   'Skill lessons by PrimeLessons.org (CC-BY-NC-SA). Mission tutorials by FLL Tutorials.';
 
-/** The deep-link resource for a quest, or null. Returns the canonical entry
- *  (with a derived `label` for the existing "Go deeper" affordance). */
-export function resourceFor(questId) {
-  const id = QUEST_RESOURCE_IDS[questId];
+/** The resource behind an item's `resourceId`, or null. Returns the canonical
+ *  entry with a derived `label` for the "Go deeper" affordance. */
+export function resourceById(id) {
   const res = id ? RESOURCES[id] : null;
   if (!res) return null;
   return { ...res, label: `${res.title} — ${res.source}` };

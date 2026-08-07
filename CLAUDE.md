@@ -1,23 +1,26 @@
-# CLAUDE.md — DBTI FLL Summer Camp Mission Hub
+# CLAUDE.md — DBTI FLL Season Skill Hub (BIOGLOW 2026–2027)
 
-> Keep this file current. When the schema, branding, gating model, or Phase 2
+> Keep this file current. When the schema, branding, content model, or Phase 2
 > plan changes, update CLAUDE.md in the same change. It is the contract future
 > work (especially the Phase 2 dashboard) relies on.
 
 ## Purpose
 
-A self-paced, **gated quest hub** for FLL robotics campers (grades 4–8, SPIKE
-Prime, **UNEARTHED** season). Campers climb a ladder of quests, self-check
-criteria to complete each one, and unlock the next. It runs on iPads and Windows
-laptops in a browser, saves progress locally, and logs every gate event so a
-Phase 2 mentor dashboard can read it.
+An **open, browsable season skill hub** for four competitive FLL teams in the
+**BIOGLOW 2026–2027** season (SPIKE Prime). Teams meet **Fridays 4:30–6:00pm**
+and **Saturdays 9:00–11:00am**. It runs on iPads and Windows laptops in a
+browser and saves everything locally.
 
-Two tracks:
+**Nothing is locked.** There are no tracks, no quest ladder, no sequential
+unlocks, and no mentor sign-off codes — all of that was the summer-camp model and
+is gone. Every team gets the whole season's content on day one and writes its own
+**strategy notes** against it.
 
-- **Rookie** (basic kit + expansion): 12 gated quests in 3 week-arcs + 1 optional
-  ungated quest (`RX`). Arcs are visual only — no mentor sign-offs.
-- **Veteran** (full LEGO): 9 quests across 4 tiers (Bronze → Silver → Gold →
-  Platinum). Tier boundaries require a mentor sign-off.
+### Deployment model
+
+Each of the four teams uses its own device(s). Separation is **per-device**
+(one `localStorage` blob per browser). There is no multi-tenancy, no login, no
+cross-team visibility — and none is planned for Phase 1.
 
 ## Stack
 
@@ -28,238 +31,194 @@ Two tracks:
 - **No backend in Phase 1.** All state is in `localStorage`.
 - Mobile-first; targets iPad Safari and Windows Chrome. Large touch targets.
 - Web app manifest + apple-touch icons so it installs to the home screen.
-- **No offline-caching service worker** in this phase — camp content changes and
+- **No offline-caching service worker** in this phase — season content changes and
   must never serve stale. Do not add one without revisiting this.
+
+## The four categories (content model)
+
+The hub is a tab row over four categories. Every category is a flat list of
+**items**; every item opens a detail sheet that ends in a **team strategy notes**
+box. That box is the only team-authored data an item carries.
+
+| Category | id | Items | Source file |
+|---|---|---|---|
+| Robot Game Missions | `missions` | M01–M15 + Equipment Inspection + Precision Tokens | `src/state/missions.js` |
+| Core Values | `core-values` | CV1–CV8 | `src/state/content.js` |
+| Innovation Project | `project` | IP1–IP7 | `src/state/content.js` |
+| Build & Programming | `build` | BP1–BP9 | `src/state/content.js` |
+
+Shared item shape (one card component + one detail component renders all four):
+
+```
+{
+  id,            // stable key — ALSO the strategy-note key. Never renumber.
+  num,           // short badge ('M01', 'CV3', 'BP7')
+  title,
+  description,   // one plain line for the card
+  pointsLabel?,  // missions only — compact points summary for the card
+  scoring?,      // missions only — [{ label, points, bonus? }] in rulebook order
+  caveats?,      // missions only — [string], conditions that zero or cap the score
+  lesson?,       // non-mission items — the in-app teaching; must stand alone
+  prompt,        // the question the strategy-notes box asks
+  resourceId?    // optional key into resources.js for the "Go deeper" link
+}
+```
+
+**Mission data provenance:** the official BIOGLOW Robot Game Rulebook (released
+2026-08-04). `pointsLabel` is authored, not derived — several missions score "each"
+and the rulebook piece counts are not restated here, so **no grand total is
+claimed anywhere in the app**. If a rulebook update lands, edit `missions.js`
+only; ids must stay stable or teams lose their notes.
 
 ## State module contract (the important part)
 
 All reads/writes of persisted state flow through **one module**:
 
 - `src/state/state.js` — the only file that touches `localStorage` (one read in
-  `loadState`, one write in `persist`). All mutators live here and return new,
-  recomputed state. **The Phase 2 sync call goes inside `persist()` and nowhere
-  else.**
+  `loadState`, one write in `persist`). All mutators live here and return new
+  state. **The Phase 2 sync call goes inside `persist()` and nowhere else.**
 - `src/state/useTeamState.js` — the React hook wrapping `state.js`. Components
   call its actions; they never touch storage or build event objects directly.
-- `src/state/config.js` — `STORAGE_KEY`, `STATE_VERSION`, `MENTOR_CODE` (single
-  constant, change in one place), `TIER_ORDER`, and criterion-type defaults
-  (`RUNLOG_N`, `RUNLOG_PASS`, `ANSWER_MIN`, `EVIDENCE_MAX_BYTES`).
-- `src/state/quests.js` — quest content (Rookie + Veteran ladders), now with
-  **typed criteria** + a per-quest `lesson` (micro-lesson).
-- `src/state/media.js` — the **only** place IndexedDB is touched. Stores evidence
-  blobs keyed `media:<ladder>:<questId>:<criterionIdx>`. The blob never leaves the
-  device and is never part of the Phase 2 sync payload.
+- `src/state/config.js` — `STORAGE_KEY`, `STATE_VERSION`, `SEASON`, `NOTE_MAX`,
+  `ROSTER_MAX`.
+- `src/state/missions.js` — BIOGLOW robot game content.
+- `src/state/content.js` — the four `CATEGORIES` + the three non-mission item
+  lists, plus `getItem` / `getCategory` lookups.
 - `src/state/resources.js` — all external "Go deeper" deep links + mentor-page
   links + attribution string, in one place.
 - `src/state/troubleshooter.js` — "Stuck?" symptom/checklist content.
 
-### Criterion types (gate model — Workstream A)
-
-Each quest criterion has a `type`. A quest completes when ALL its criteria are
-satisfied per their type (`isCriterionSatisfied` in state.js is the single source
-of truth, exported for the UI). Definitions live in `quests.js`; per-criterion
-runtime state lives under `progress[questId].criteria[idx]`:
-
-```
-check    def { type:'check',  label }
-         st  { type:'check', done:bool }                       satisfied: done === true
-
-runlog   def { type:'runlog', label, n, pass }                 (default n=3, pass=2)
-         st  { type:'runlog', runs:[{result:'hit'|'miss'}], n, pass }
-                                                                satisfied: hits >= pass
-
-evidence def { type:'evidence', media:'photo'|'video', label }
-         st  { type:'evidence', media, idbKey, capturedAt }    satisfied: idbKey present
-         (blob lives in IndexedDB via media.js; state stores only the idbKey)
-
-answer   def { type:'answer', label, min }                     (default min=8)
-         st  { type:'answer', text }                           satisfied: trim().length >= min
-```
-
-**Device camera setting — `deviceCanCapture` (top-level, per device).** A boolean
-sibling of `team`/`ladders`/`events`, so it is per-browser and survives team and
-ladder switches. Seeded by a light heuristic (`detectCanCapture`: true on
-iPad/iPhone/Android or coarse-pointer touch devices, false on desktop/Windows);
-the menu toggle "This device can film the robot" is the source of truth and
-overrides the heuristic (`setDeviceCanCapture`).
-
-When `deviceCanCapture === false`, `isCriterionSatisfied` returns `true` for every
-`evidence` criterion, so evidence is **non-gating** — it never blocks completion,
-the AND-gate and "finish every step" footer skip it, and it renders as clearly
-**optional** (muted, capture still available so a laptop webcam can attach). When
-`true`, evidence works as built (required, gating, IndexedDB capture). The derived
-`hasEvidence` flag stays device-INDEPENDENT (true only when a blob actually
-exists), so a dashboard treats missing evidence on no-camera devices as neutral,
-not stuck. Toggling the setting recomputes both ladders.
-
 ### Persistence schema
 
-`localStorage` key: **`fll-camp-state-v2`** (`STATE_VERSION = 'v2'`). On load, any
-blob whose `version` !== `'v2'` is discarded safely (no migration, no crash) — a
-stray v1 blob is simply ignored.
+`localStorage` key: **`fll-season-state-v3`** (`STATE_VERSION = 'v3'`). On load,
+any blob whose `version` !== `'v3'` is discarded safely (no migration, no crash).
+A leftover `fll-camp-state-v2` camp-ladder blob is simply ignored — the ladder has
+no equivalent here.
 
 ```
 {
-  version: 'v2',
-  team: { name, createdAt, dailyLog } | null, // null until onboarding
-  activeLadder: 'rookie' | 'veteran',
-  ladders: {
-    rookie:  { progress: { [questId]: ProgressEntry } },
-    veteran: { progress: { [questId]: ProgressEntry }, tier: TierField }
-  },
+  version: 'v3',
+  team: {
+    name,
+    createdAt,
+    members: [{ id, name }],   // roster — informational only, see below
+    dailyLog                   // see DailyLog
+  } | null,                    // null until onboarding
+  notes: { [itemId]: { text, updatedAt } },   // the season strategy document
   needsMentor: boolean,
-  deviceCanCapture: boolean,                 // per-device; false => evidence non-gating
-  seenTour: boolean,                         // per-device; first-run tour seen here (default false)
-  setupBarDismissedOn: string,               // per-device; local date the setup bar was dismissed
-  events: Event[]                            // append-only
+  seenTour: boolean,           // per-device; first-run tour seen here
+  setupBarDismissedOn: string, // per-device; local date the setup bar was dismissed
+  events: Event[]              // append-only
 }
 
-// Daily check-in (Roles + reflection), keyed by LOCAL date 'YYYY-MM-DD'. Team
-// data, so it rides the existing Phase 2 snapshot. No event types. todayKey()
-// (state.js) returns the key; a new day starts a fresh entry, old days are kept.
+// Session check-in (Roles + reflection), keyed by LOCAL date 'YYYY-MM-DD'. Team
+// data, so it rides the Phase 2 snapshot. No event types. todayKey() (state.js)
+// returns the key; a new day starts a fresh entry, old days are kept.
 DailyLog = { [dateKey:string]: {
   roles: { coder, operator, protoBuilder, planner },  // free text, none required
-  reflection: string,                                  // end-of-day note, never gates
+  reflection: string,                                  // end-of-session note
   updatedAt: ISOString
 } }
-
-ProgressEntry = { status: 'locked'|'available'|'complete',
-                  criteria: { [idx:number]: CriterionState },   // see criterion types
-                  completedAt: ISOString|null,
-                  hasEvidence: boolean }   // derived; true if any evidence criterion satisfied
-
-TierField = 'none'|'bronze'|'silver'|'gold'|'platinum'   // highest tier unlocked
-                                                          // ('none' = only Bronze open)
 ```
 
-Progress is **namespaced per ladder**, so switching tracks preserves each track's
-progress separately.
+**Roster (`team.members`)** — a plain add/remove list of names. **No auth, no
+login, no gating**: it exists so the team can see itself, and it is the seam real
+student accounts drop into once emails are provisioned. `ROSTER_MAX` caps it at
+12. Editable at onboarding and any time from the team menu.
+
+**Strategy notes (`notes`)** — one free-text note per item id, capped at
+`NOTE_MAX` (2000 chars), autosaved as the team types, editable by anyone on the
+device at any time. This is the season's living strategy document. An empty note
+deletes its key rather than storing `''`.
 
 ### Event-log contract (dashboard-ready)
 
-`events` is **append-only**. This array plus a progress snapshot is what Phase 2
-POSTs to a Google Sheet.
+`events` is **append-only**. This array plus the `team` + `notes` snapshot is what
+Phase 2 POSTs to a Google Sheet.
 
 ```
-Event = { ts, type, ladder, questId?, tier?, teamName, result?, media? }
+Event = { ts, type, teamName, memberCount? }
 
 type ∈ {
-  'team_created',      // onboarding; ladder = chosen track
-  'quest_complete',    // a quest's criteria all satisfied; includes questId
-  'tier_signoff',      // mentor code accepted; includes tier (the unlocked tier)
+  'team_created',      // onboarding; carries memberCount
+  'member_added',
+  'member_removed',
   'mentor_requested',  // needsMentor toggled ON
-  'mentor_cleared',    // needsMentor toggled OFF
-  'run_logged',        // a runlog Hit/Miss; includes questId + result ('hit'|'miss')
-  'evidence_captured'  // a photo/video captured; includes questId + media ('photo'|'video')
+  'mentor_cleared'     // needsMentor toggled OFF
 }
 ```
 
-**Media never syncs** — only the *fact* that evidence exists. Phase 2 POSTs the
-events array + a progress snapshot (each `ProgressEntry` carries the derived
-`hasEvidence` flag the dashboard reads). The IndexedDB blobs stay on-device.
-
-### Gate model
-
-- **Self-check:** a quest completes when all its criteria are satisfied (per the
-  criterion types above). The next quest in the same tier/arc unlocks
-  automatically.
-- **Mentor sign-off:** only at veteran tier boundaries. When the final quest of a
-  tier is self-checked complete, the app prompts for the 4-digit
-  `MENTOR_CODE` (`src/state/config.js`, currently `5669`). On a correct code the
-  next tier unlocks and a `tier_signoff` event is logged.
-- Rookie has **no** sign-offs. Veteran sign-off quests: `V3 → Silver`,
-  `V6 → Gold`, `V8 → Platinum`.
+Strategy notes and the daily check-in deliberately log **no events** — they
+autosave on every keystroke, so events would be keystroke spam. They ride the
+snapshot instead.
 
 ## Phase 2 plan (not in this repo yet)
 
-1. **Run logger → Google Sheet via Apps Script.** Add a `fetch` POST inside
-   `persist()` in `state.js` (the single write point) that sends
-   `{ team, activeLadder, ladders, events }` to a deployed Apps Script Web App.
-   Make it non-blocking / best-effort so local use never breaks offline.
-2. **Mentor dashboard** reads that Sheet to show each team's position, recent
-   `quest_complete` / `tier_signoff` events, and which teams have
-   `needsMentor = true`.
+1. **Sync → Google Sheet via Apps Script.** Add a `fetch` POST inside `persist()`
+   in `state.js` (the single write point) that sends `{ team, notes, events }` to
+   a deployed Apps Script Web App. Make it non-blocking / best-effort so local use
+   never breaks offline.
+2. **Mentor dashboard** reads that Sheet to show each team's roster, which
+   missions have a written plan, and which teams have `needsMentor = true`.
 
 Because every write already funnels through `persist()`, wiring sync is a
 one-file change.
 
-## Resources contract (Workstream B)
+## Resources contract
 
-- Every quest has an in-app **micro-lesson** (`lesson` in `quests.js`) — the
-  primary teaching; it must stand alone so kids never need to leave the app.
+- Non-mission items teach with an in-app `lesson`; missions teach with their
+  scoring breakdown. Either way the app stands alone — kids never *need* to leave.
 - `src/state/resources.js` is the **single source of truth for every external
   link**. `RESOURCES` is keyed by a stable resource `id`; everything that points
   off-app references an entry by id so nothing is ever duplicated.
 
   ```
   RESOURCES[id] = {
-    id,                       // stable key
-    title,                    // kid-friendly name
-    blurb,                    // one short line — what it helps you do
-    source: 'PrimeLessons' | 'FLL Tutorials',   // drives the source chip
+    id, title, blurb,
+    source: 'PrimeLessons' | 'FLL Tutorials',
     url,                      // verified deep link (never a homepage)
     topics: TopicKey[],       // browse-topic keys ([] = not surfaced on the library page)
     audience: 'student' | 'mentor'
   }
   ```
 
-  Also exported: `TOPICS` (ordered browse topics — `new-to-fll`, `driving`,
-  `sensors`, `building`, `missions`, `strategy`; the closing "More" group uses
-  the `more` topic key), `QUEST_RESOURCE_IDS` (`questId -> resource id`),
-  `MENTOR_LINK_IDS`, `ATTRIBUTION`, and helpers `resourceFor(questId)`,
-  `resourcesForTopic(topicKey)`, `mentorLinks()`.
-- **Three consumers, all by id:** the per-quest "Go deeper" deep link
-  (`resourceFor`, optional, never gates completion), the student **Resource
-  Library** page, and the mentor page. Quests not in `QUEST_RESOURCE_IDS` show no
-  deep link.
-- **Resource Library** (hash route `#/resources`) — a pure free-browse page:
-  **no gating, no progress tracking**. Topics are banded section headers (same
-  editorial system as the week-arcs); under each, resource cards (kid title,
-  blurb, source chip, external-link affordance) open the deep link in a new tab.
-  A closing "More" group holds the two index pages, and a Stuck link opens the
-  troubleshooter. Reachable from the menu ("Resource Library", above "Mentor
-  Resources") and from a slim on-ladder entry bar near the top of the main screen.
-- The `/mentor-resources` page (hash route `#/mentor-resources`, linked from the
-  menu) maps every quest to its resource (via `resourceFor`) plus the mentor-only
-  links (`mentorLinks()`).
+  Also exported: `TOPICS`, `MENTOR_LINK_IDS`, `ATTRIBUTION`, and helpers
+  `resourceById(id)`, `resourcesForTopic(topicKey)`, `mentorLinks()`.
+- **Three consumers, all by id:** an item's `resourceId` → "Go deeper" deep link
+  (optional), the student **Resource Library** page, and the mentor page.
+- **Resource Library** (hash route `#/resources`) — pure free-browse: no gating,
+  no progress. Topics are banded section headers; under each, resource cards open
+  the deep link in a new tab. Reachable from the menu and from a slim on-hub bar.
+- `/mentor-resources` (hash route `#/mentor-resources`) lists every item that has
+  a deep link, grouped by category, plus the mentor-only links.
 - **Link policy:** every configured URL was verified to return 200 (2026-06-29).
   If one dies, fall back to the relevant index (`prime-index` Lessons.html or
   `fllt-index` category.html) and add `// TODO verify-link`. Never ship a dead
-  link. Link only — never copy PrimeLessons / FLL Tutorials slide or video
-  content into the app.
+  link. Link only — never copy PrimeLessons / FLL Tutorials content into the app.
 
-## First-run tour + Daily check-in (Workstream C)
-
-Two additive features; neither touches storage I/O, `persist()`, the gate logic,
-or existing routes.
+## Tour + session check-in
 
 - **First-run site tour** (`SiteTour.jsx`). A centered modal carousel (6 steps,
-  progress dots, Back/Next, Skip + X, swipe + arrow keys; final Next is a green
-  "Start climbing"). Each step shows a small CSS-built **echo** of a real element
-  (no images/screenshots/live-DOM highlighting). Gated by the per-device
-  `seenTour` flag: auto-launches once when a team first reaches the ladder screen
-  and `seenTour === false`; finish/skip/X/Esc/backdrop all call `markTourSeen`
-  (sets `seenTour = true`) so it never auto-nags again. The menu item **"How
-  This Works"** reopens it any time, independent of the flag.
-- **Roles + Daily Check-In** (`TodayCheckin.jsx`, hash route `#/today`). Roles
-  (Coder / Operator / Prototype Builder / Planner) + an end-of-day reflection,
+  progress dots, Back/Next, Skip + X, swipe + arrow keys). Each step shows a small
+  CSS-built **echo** of a real element (no images/screenshots). Gated by the
+  per-device `seenTour` flag: auto-launches once when a team first reaches the hub;
+  finish/skip/X/Esc/backdrop all call `markTourSeen`. The menu item **"How This
+  Works"** reopens it any time, independent of the flag.
+- **Roles + Session Check-In** (`TodayCheckin.jsx`, hash route `#/today`). Roles
+  (Coder / Operator / Prototype Builder / Planner) + an end-of-session reflection,
   autosaved into `team.dailyLog[todayKey()]` via state.js mutators
-  (`ensureDailyToday`, `setRole`, `setReflection`). No new event types — these
-  are notes, not gate actions. The page reuses the existing `DailyRhythm`
-  component for its "Today's Rhythm" section. Role/reflection data is shared team
-  state (rides the Phase 2 snapshot); the per-device `setupBarDismissedOn` is UI
-  only. Access: a menu item **"Today's Roles"** (above "Resource Library") and a
-  slim, dismissible on-ladder **setup bar** shown only while today's roles are
-  all blank and not dismissed-for-the-day (stacked above the Resource Library
-  bar). Stuck + Request a Mentor remain the only two sticky bottom buttons.
+  (`ensureDailyToday`, `setRole`, `setReflection`). Reuses the `DailyRhythm`
+  component, which now shows the **Friday 4:30–6:00pm** and **Saturday
+  9:00–11:00am** session shapes. Access: a menu item **"Session Roles"** and a
+  slim, dismissible on-hub **setup bar**. Stuck + Request a Mentor remain the only
+  two sticky bottom buttons.
 
 ## Branding tokens (see `src/styles/tokens.css`)
 
 - Black `#0D0D0D`, gold `#F5B800` (accents `#C49200`, `#FFF8D6`, `#F0E080`).
 - IDEA green `#1DB35A` (dark `#167540`, tint `#EBF7F1`, mid `#9ECFB4`).
-- Medals: bronze `#C77D3A`, silver `#8C9196`, gold `#E0A400`, platinum `#5E86B0`.
 - Fonts: **Oswald** (display/headers), **Inter** (body), via Google Fonts.
-- Black headers, gold accents, green for "go/complete" states.
+- Black headers, gold accents, green for "noted / go" states.
 
 ## Project layout
 
@@ -268,24 +227,31 @@ src/
   main.jsx              app entry
   App.jsx               screen orchestration + overlays
   state/
-    config.js           constants (MENTOR_CODE, STORAGE_KEY, TIER_ORDER, type defaults)
-    quests.js           Rookie + Veteran quest content (typed criteria + lessons)
-    resources.js        SINGLE source of truth for external links (id-keyed:
-                        per-quest deep links + Resource Library + mentor links + attribution)
-    media.js            IndexedDB module — ONLY place IndexedDB is touched
+    config.js           constants (STORAGE_KEY, SEASON, NOTE_MAX, ROSTER_MAX)
+    missions.js         BIOGLOW robot game content (M01–M15 + match basics)
+    content.js          the four CATEGORIES + Core Values / Project / Build items
+    resources.js        SINGLE source of truth for external links
     troubleshooter.js   "Stuck?" content
     state.js            SINGLE state module (only localStorage I/O + all mutators)
-    useTeamState.js     React hook over state.js (+ evidence/IndexedDB orchestration)
-  components/           Onboarding, Climb, QuestCard, QuestDetail, Criterion,
-                        Evidence, Troubleshooter, MentorGate, Menu,
-                        MentorResources, ResourceLibrary, TodayCheckin,
-                        SiteTour, DailyRhythm, Modal
+    useTeamState.js     React hook over state.js
+  components/           Onboarding, RosterEditor, Hub, MissionCard, MissionDetail,
+                        Troubleshooter, Menu, MentorResources, ResourceLibrary,
+                        TodayCheckin, SiteTour, DailyRhythm, Modal
   styles/               tokens.css (branding), app.css
 public/
   manifest.webmanifest, icons/   (PWA install assets)
 scripts/generate-icons.mjs       (regenerate PNG icons from icon.svg)
-.github/workflows/deploy.yml      (Pages build + deploy)
+.github/workflows/deploy.yml     (Pages build + deploy)
 ```
+
+## Known debt
+
+`src/styles/app.css` still carries rules for the removed camp ladder
+(`.quest-card`, `.climb*`, `.tier*`, `.signoff-banner`, `.criterion`, `.runlog`,
+`.evidence`, `.mentor-gate`, `.codeinput`, `.track-card`). Nothing references
+them any more — they are dead weight, not a bug. Safe to delete in a follow-up
+sweep; check `.criteria` / `.checklist` (still used by the Troubleshooter) and
+`.answer__input` (still used by notes + the reflection box) before cutting.
 
 ## Commands
 

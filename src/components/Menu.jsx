@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import Modal from './Modal.jsx';
+import RosterEditor from './RosterEditor.jsx';
 
-// Team menu: rename the team or switch track. Switching track only changes
-// which ladder is active — each track's progress is stored separately and is
-// never lost.
+// Team menu: rename the team, edit the roster, and reach the standalone pages.
+// Nothing here gates anything — the hub is open.
 export default function Menu({
   team,
-  activeLadder,
   onRename,
-  onSwitchTrack,
-  deviceCanCapture,
-  onSetDeviceCanCapture,
+  onAddMember,
+  onRemoveMember,
   onOpenToday,
   onOpenResourceLibrary,
   onOpenMentorResources,
@@ -44,54 +42,17 @@ export default function Menu({
 
       <hr className="menu__divider" />
 
-      <p className="field__label">Track</p>
-      <p className="menu__note">
-        Switching keeps each track's progress separate — nothing is lost.
-      </p>
-      <div className="menu__tracks">
-        <button
-          type="button"
-          className={`track-card ${activeLadder === 'rookie' ? 'track-card--on' : ''}`}
-          onClick={() => onSwitchTrack('rookie')}
-          aria-pressed={activeLadder === 'rookie'}
-        >
-          <span className="track-card__name">Rookie</span>
-          <span className="track-card__desc">12 quests · 3 week-arcs</span>
-        </button>
-        <button
-          type="button"
-          className={`track-card ${activeLadder === 'veteran' ? 'track-card--on' : ''}`}
-          onClick={() => onSwitchTrack('veteran')}
-          aria-pressed={activeLadder === 'veteran'}
-        >
-          <span className="track-card__name">Veteran</span>
-          <span className="track-card__desc">9 quests · Bronze → Platinum</span>
-        </button>
-      </div>
-
-      <hr className="menu__divider" />
-
-      <div className="toggle-row">
-        <span className="toggle-row__label">This device can film the robot</span>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={deviceCanCapture}
-          className={`switch ${deviceCanCapture ? 'switch--on' : ''}`}
-          onClick={() => onSetDeviceCanCapture(!deviceCanCapture)}
-        >
-          <span className="switch__knob" aria-hidden="true" />
-        </button>
-      </div>
-      <p className="menu__note">
-        When off, filming a clip is optional and never blocks a quest. Turn on for iPads or
-        phones with a camera.
-      </p>
+      <p className="field__label">Team Members</p>
+      <RosterEditor
+        members={team?.members ?? []}
+        onAdd={onAddMember}
+        onRemove={onRemoveMember}
+      />
 
       <hr className="menu__divider" />
 
       <button type="button" className="btn btn--primary btn--block" onClick={onOpenToday}>
-        Today's Roles ↗
+        Session Roles ↗
       </button>
       <button
         type="button"

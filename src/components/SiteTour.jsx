@@ -1,31 +1,32 @@
 import { useEffect, useRef, useState } from 'react';
+import { SEASON } from '../state/config.js';
 
 // First-run site tour: a centered modal carousel over a dimmed backdrop. Six
 // steps, each with a title, one or two plain sentences, and a small visual ECHO
 // of a real screen element built from the app's own CSS (no images, no
 // screenshots, no live-DOM highlighting). Swipeable on touch; arrows + dots +
 // keyboard everywhere. `onClose` is called on Skip, X, Esc, backdrop, and the
-// final "Start climbing" — App marks the tour seen on any of them.
+// final "Open the hub" — App marks the tour seen on any of them.
 const STEPS = [
   {
-    title: 'This is your guide',
-    body: "It tells you the next thing to do, one step at a time. No guessing what's next.",
+    title: 'This is your season hub',
+    body: 'Everything you need for BIOGLOW lives here — the missions, the values, the project, and the robot skills. Nothing is locked.',
     echo: 'wordmark',
   },
   {
-    title: 'Follow the path',
-    body: 'Your track is a ladder of quests. The glowing one that says YOU ARE HERE is your next step. Tap it to open it.',
-    echo: 'disc',
+    title: 'Four categories',
+    body: 'Tap a tab to switch between the Robot Game missions, Core Values, the Innovation Project, and Build & Code. Browse them in any order, any time.',
+    echo: 'cats',
   },
   {
-    title: 'Learn, then do',
-    body: 'Every quest has a short lesson. Read it, then go do the real thing with your robot on the field.',
-    echo: 'lesson',
+    title: 'Open anything',
+    body: 'Every mission shows exactly what scores, what the bonus is, and what zeroes it. Tap one to read the details.',
+    echo: 'mission',
   },
   {
-    title: 'Prove it',
-    body: 'Then log what happened: tick a box, log your runs Hit or Miss, record a quick clip if your device has a camera, or type an answer. Finish every step and the next quest unlocks.',
-    echo: 'gate',
+    title: 'Write your strategy',
+    body: 'Each item has a strategy notes box. Whatever your team decides, write it there — it saves as you type, and anyone on the team can edit it later. This is your season plan.',
+    echo: 'notes',
   },
   {
     title: 'Stuck? Read this first',
@@ -34,7 +35,7 @@ const STEPS = [
   },
   {
     title: 'Get help, or explore',
-    body: "Tap Request a Mentor when you need a person. Tap Resource Library any time to dig into how-tos. That's it. Start climbing.",
+    body: "Tap Request a Mentor when you need a person. Tap Resource Library any time to dig into how-tos. That's it — go build.",
     echo: 'help',
   },
 ];
@@ -115,7 +116,7 @@ export default function SiteTour({ onClose }) {
           </button>
           {i === last ? (
             <button type="button" className="btn btn--go" onClick={onClose}>
-              Start climbing
+              Open the hub
             </button>
           ) : (
             <button type="button" className="btn btn--primary" onClick={next}>
@@ -135,36 +136,46 @@ function Echo({ kind }) {
     case 'wordmark':
       return (
         <div className="echo-band">
-          <span className="echo-band__kicker">DBTI FLL Summer Camp</span>
-          <span className="echo-band__word">Mission Hub</span>
+          <span className="echo-band__kicker">DBTI FLL · {SEASON}</span>
+          <span className="echo-band__word">Season Skill Hub</span>
         </div>
       );
-    case 'disc':
+    case 'cats':
       return (
-        <div className="echo-disc">
-          <span className="echo-here">You are here</span>
-          <span className="quest-card__disc disc--available echo-disc__disc">R1</span>
-        </div>
-      );
-    case 'lesson':
-      return (
-        <div className="lesson echo-lesson">
-          <span className="lesson__label">Micro-lesson</span>
-          <p className="lesson__text">Read this, then go try it on the field.</p>
-        </div>
-      );
-    case 'gate':
-      return (
-        <div className="echo-gate">
-          <span className="echo-gate__chip">
-            <span className="echo-box">✓</span>
+        <div className="cat-tabs echo-cats">
+          <span className="cat-tab cat-tab--on">
+            <span className="cat-tab__icon">🤖</span>
+            <span className="cat-tab__label">Missions</span>
           </span>
-          <span className="echo-gate__chip">
-            <span className="pip pip--hit">H</span>
-            <span className="pip pip--miss">M</span>
+          <span className="cat-tab">
+            <span className="cat-tab__icon">🤝</span>
+            <span className="cat-tab__label">Core Values</span>
           </span>
-          <span className="echo-gate__chip echo-cam">📷</span>
-          <span className="echo-gate__chip echo-textline">
+          <span className="cat-tab">
+            <span className="cat-tab__icon">🌱</span>
+            <span className="cat-tab__label">Project</span>
+          </span>
+        </div>
+      );
+    case 'mission':
+      return (
+        <div className="mcard echo-mcard">
+          <span className="mcard__badge">M08</span>
+          <span className="mcard__body">
+            <span className="mcard__titlerow">
+              <span className="mcard__title">Tangled</span>
+              <span className="mcard__pts">30</span>
+            </span>
+            <span className="mcard__desc">Get the vine touching the mat.</span>
+          </span>
+          <span className="mcard__go">›</span>
+        </div>
+      );
+    case 'notes':
+      return (
+        <div className="echo-notes">
+          <span className="echo-notes__label">Team Strategy Notes</span>
+          <span className="echo-textline">
             <span />
             <span />
           </span>
