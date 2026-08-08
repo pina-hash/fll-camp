@@ -1,5 +1,5 @@
 import Modal from './Modal.jsx';
-import { resourceById, ATTRIBUTION } from '../state/resources.js';
+import { itemResources, ATTRIBUTION } from '../state/resources.js';
 
 // Detail sheet for any Skill Hub item. Missions show their scoring breakdown;
 // skill items show their in-app lesson, and mechanisms add a "missions this
@@ -9,7 +9,7 @@ import { resourceById, ATTRIBUTION } from '../state/resources.js';
 // time. There is no gate, no completion, and nothing to unlock.
 export default function MissionDetail({ item, note, onSetNote, onClose }) {
   if (!item) return null;
-  const deepLink = resourceById(item.resourceId);
+  const deepLinks = itemResources(item); // primary first, optional secondary after
 
   return (
     <Modal
@@ -61,14 +61,20 @@ export default function MissionDetail({ item, note, onSetNote, onClose }) {
         </ul>
       )}
 
-      {deepLink && (
-        <a className="deeplink" href={deepLink.url} target="_blank" rel="noopener noreferrer">
-          <span className="deeplink__go">Go deeper ↗</span>
+      {deepLinks.map((link, idx) => (
+        <a
+          className="deeplink"
+          key={link.id}
+          href={link.url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span className="deeplink__go">{idx === 0 ? 'Go deeper ↗' : 'More training designs ↗'}</span>
           <span className="deeplink__label">
-            {deepLink.title} <span className="chip chip--source">{deepLink.source}</span>
+            {link.title} <span className="chip chip--source">{link.source}</span>
           </span>
         </a>
-      )}
+      ))}
 
       <h3 className="mdetail__head">Team Strategy Notes</h3>
       <p className="mdetail__prompt">{item.prompt}</p>

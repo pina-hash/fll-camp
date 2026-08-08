@@ -1,5 +1,5 @@
 import { ITEM_CATEGORIES } from '../state/content.js';
-import { resourceById, mentorLinks, ATTRIBUTION } from '../state/resources.js';
+import { itemResources, mentorLinks, ATTRIBUTION } from '../state/resources.js';
 import { SEASON } from '../state/config.js';
 
 // Standalone reference page (route #/mentor-resources). Maps every Skill Hub
@@ -26,22 +26,23 @@ export default function MentorResources({ onBack }) {
         </p>
 
         {ITEM_CATEGORIES.map((cat) => {
-          const linked = cat.items.filter((item) => resourceById(item.resourceId));
+          const linked = cat.items.filter((item) => itemResources(item).length > 0);
           if (linked.length === 0) return null;
           return (
             <section className="reslist" key={cat.id}>
               <h2 className="reslist__head">{cat.label}</h2>
               <ul className="reslist__items">
-                {linked.map((item) => {
-                  const res = resourceById(item.resourceId);
-                  return (
-                    <li key={item.id} className="resrow">
-                      <div className="resrow__item">
-                        <span className="resrow__num">{item.num}</span>
-                        <span className="resrow__qtitle">{item.title}</span>
-                      </div>
+                {linked.map((item) => (
+                  <li key={item.id} className="resrow">
+                    <div className="resrow__item">
+                      <span className="resrow__num">{item.num}</span>
+                      <span className="resrow__qtitle">{item.title}</span>
+                    </div>
+                    {/* An item may carry a second link — list every one of them. */}
+                    {itemResources(item).map((res) => (
                       <a
                         className="resrow__link"
+                        key={res.id}
                         href={res.url}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -51,9 +52,9 @@ export default function MentorResources({ onBack }) {
                         </span>
                         <span className="resrow__go">Open ↗</span>
                       </a>
-                    </li>
-                  );
-                })}
+                    ))}
+                  </li>
+                ))}
               </ul>
             </section>
           );

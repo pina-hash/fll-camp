@@ -77,9 +77,16 @@ detail component renders all six):
   fits?,         // mechanisms only — the "Missions this fits" line: one sentence
                  // naming the BIOGLOW missions whose physical demand it matches
   prompt,        // the question the strategy-notes box asks
-  resourceId?    // optional key into resources.js for the "Go deeper" link
+  resourceId?,   // optional key into resources.js for the "Go deeper" link
+  secondaryResourceId?  // optional second link, rendered under the primary one
 }
 ```
+
+An item may carry **two** deep links: `resourceId` is the primary, and
+`secondaryResourceId` an optional lower-billing follow-up. Always resolve them
+with **`itemResources(item)`** (resources.js) — never by reading the two fields
+directly — so the detail sheet and the mentor page can't disagree. Only ROBOT4
+uses the second slot today.
 
 **Mechanisms Library** (`mechanisms`) is a plain `items` category — same card,
 same detail sheet, same strategy note keyed by item id, same `ITEM_INDEX`
@@ -100,7 +107,10 @@ ROBOT3's legal-sensor list (force/touch, colour, distance, gyro) comes from the
 Robot Game Rulebook's equipment section, which this repo does not carry — it was
 supplied for this content, so re-check it against the rulebook before a season
 briefing. ROBOT6's numbers are the `INSPECT` item's in `missions.js` (one launch
-area, under 12 in, 20 points) and must stay in step with it.
+area, under 12 in, 20 points) and must stay in step with it. ROBOT4's primary
+link is the official season build manual (`comp-bot-manual`) with the
+PrimeLessons robot-design page demoted to `secondaryResourceId` — see the
+at-risk warning in the link policy below.
 
 Media entry shape for the `media` category (see `MEDIA_ITEMS` in `resources.js`):
 
@@ -242,7 +252,7 @@ one-file change.
   ```
   RESOURCES[id] = {
     id, title, blurb,
-    source: 'PrimeLessons' | 'FLL Tutorials',
+    source: 'PrimeLessons' | 'FLL Tutorials' | 'Season Build Manual',
     url,                      // verified deep link (never a homepage)
     topics: TopicKey[],       // browse-topic keys ([] = not surfaced on the library page)
     audience: 'student' | 'mentor'
@@ -250,10 +260,11 @@ one-file change.
   ```
 
   Also exported: `TOPICS`, `MENTOR_LINK_IDS`, `ATTRIBUTION`, and helpers
-  `resourceById(id)`, `resourcesForTopic(topicKey)`, `mentorLinks()`.
-- **Three consumers of `RESOURCES`, all by id:** an item's `resourceId` → "Go
-  deeper" deep link (optional), the student **Resource Library** page, and the
-  mentor page.
+  `resourceById(id)`, `itemResources(item)`, `resourcesForTopic(topicKey)`,
+  `mentorLinks()`.
+- **Three consumers of `RESOURCES`, all by id:** an item's deep links via
+  `itemResources(item)` (optional, up to two), the student **Resource Library**
+  page, and the mentor page.
 - **`MEDIA_ITEMS` is a separate export in the same file**, backing the Video &
   Resource Library category. Same "one file owns every external link" rule, but
   deliberately not folded into `RESOURCES`: the shape differs (`kind`, `series`,
@@ -273,7 +284,17 @@ one-file change.
   YouTube oEmbed endpoint). The one exception is `robot-designs`
   (`primelessons.org/en/RobotDesigns.html`, added 2026-08-07 for the Mechanisms
   Library) — the URL was supplied rather than fetch-verified, so **check it on the
-  next link sweep**. If one dies, fall back to the relevant index
+  next link sweep**.
+- **AT-RISK LINK — `comp-bot-manual`** (the official 225-step competition bot
+  build manual, ROBOT4's primary link, added 2026-08-08). It is a **Google Drive
+  file on an account we do not control — not a Bosco Tech account** — so it can
+  be moved, permission-changed, or deleted without warning, and the first we
+  would hear of it is a team that cannot open the build they are working from.
+  It was supplied rather than fetch-verified. **TODO: upload a Bosco Tech-owned
+  copy of the PDF and swap the URL for it**, then drop this bullet. Until that
+  happens, treat it as the single most likely link in the app to break.
+  ROBOT4 keeps `robot-designs` as its `secondaryResourceId`, so if the Drive file
+  dies the item still has somewhere to send a team. If one dies, fall back to the relevant index
   (`prime-index` Lessons.html or `fllt-index` category.html) and add
   `// TODO verify-link`; for a dead media entry, replace or drop it. Never ship a
   dead link. Link only — never copy PrimeLessons / FLL Tutorials content, or

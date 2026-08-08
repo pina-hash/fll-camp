@@ -10,7 +10,8 @@
 // Each resource: { id, title, blurb, source, url, topics, audience }
 //   title    kid-friendly name
 //   blurb    one short line — what it helps you do
-//   source   'PrimeLessons' | 'FLL Tutorials'  (drives the source chip)
+//   source   'PrimeLessons' | 'FLL Tutorials' | 'Season Build Manual'
+//            (drives the source chip)
 //   url      the verified deep link (never a homepage)
 //   topics   browse-topic keys it appears under on the library page ([] = not browsed)
 //   audience 'student' | 'mentor'
@@ -146,6 +147,19 @@ export const RESOURCES = {
   },
 
   // ---- Item-only deep links (not surfaced on the browse page) ----
+  // AT-RISK LINK — externally owned. This Drive file is NOT on a Bosco Tech
+  // account, so it can be moved, permission-changed, or deleted without warning
+  // and we would find out from a team that cannot open it.
+  // TODO: host a Bosco Tech-owned copy and swap this URL for it.
+  'comp-bot-manual': {
+    id: 'comp-bot-manual',
+    title: 'Official competition bot build manual',
+    blurb: '225 steps: drivetrain, attachment motors, SPIKE Prime hub, and framing.',
+    source: 'Season Build Manual',
+    url: 'https://drive.google.com/file/d/18biuDIcTEnGeycvEj1K0PnMxgbRZ-bfL/view',
+    topics: [],
+    audience: 'student',
+  },
   'robot-designs': {
     id: 'robot-designs',
     title: 'Robot design and mechanism examples',
@@ -359,6 +373,13 @@ export function resourceById(id) {
   const res = id ? RESOURCES[id] : null;
   if (!res) return null;
   return { ...res, label: `${res.title} — ${res.source}` };
+}
+
+/** An item's deep links, PRIMARY FIRST: `resourceId`, then the optional
+ *  `secondaryResourceId`. The one place item -> links is resolved, so the detail
+ *  sheet and the mentor page can never disagree about what an item links to. */
+export function itemResources(item) {
+  return [item?.resourceId, item?.secondaryResourceId].map(resourceById).filter(Boolean);
 }
 
 /** Library: student resources tagged with a given topic key, in insertion order. */

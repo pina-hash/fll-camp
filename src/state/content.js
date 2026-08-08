@@ -14,6 +14,10 @@
 //               skill back to specific BIOGLOW missions (Mechanisms Library)
 //   prompt      the question the strategy-notes box asks
 //   resourceId  optional — a key in resources.js for the "Go deeper" link
+//   secondaryResourceId
+//               optional — a second, lower-billing link rendered under the
+//               primary one. Resolve both with itemResources(item), never by
+//               reading the two fields directly.
 //
 // Six categories use that item shape (kind: 'items'). The seventh, the Video &
 // Resource Library, is kind: 'media' — a curated list of external links with no
@@ -66,9 +70,10 @@ export const ROBOT_ITEMS = [
     title: 'The Driving Base',
     description: 'Build this first. Everything else sits on it.',
     lesson:
-      'Every robot starts as a driving base: two motors, two wheels, and a frame stiff enough that the robot goes where you point it. Build it before you build a single attachment, because every mission you ever attempt inherits how straight and how repeatably this thing drives. Do not invent one from nothing on your first try — start from a proven base, then change it once you can say why.',
-    prompt: 'Which base design are you starting from, and who on the team is building it?',
-    resourceId: 'robot-designs',
+      'Every robot starts as a driving base: two motors, two wheels, and a frame stiff enough that the robot goes where you point it. This season every team builds the same one — the official competition bot manual below is the build you are working from, 225 steps covering the drivetrain, the attachment motors, the SPIKE Prime hub, and the framing. Build it before you build a single attachment, because every mission you ever attempt inherits how straight and how repeatably this thing drives.',
+    prompt: 'How far through the 225 steps are you, and who is building which section?',
+    resourceId: 'comp-bot-manual',
+    secondaryResourceId: 'robot-designs',
   },
   {
     id: 'ROBOT5',
