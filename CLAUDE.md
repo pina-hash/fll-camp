@@ -33,6 +33,12 @@ cross-team visibility — and none is planned for Phase 1.
 - Web app manifest + apple-touch icons so it installs to the home screen.
 - **No offline-caching service worker** in this phase — season content changes and
   must never serve stale. Do not add one without revisiting this.
+- **`public/build/comp-bot-manual.pdf` (21.9 MB) ships with the build.** It is by
+  far the largest asset in the repo and is served from our own origin. It is
+  fetched only when a team opens `#/build`, never on first paint, so it does not
+  slow the hub down — but with no service worker it is re-fetched whenever the
+  browser's HTTP cache misses. That is the accepted trade for not depending on
+  someone else's Google Drive.
 
 ## The seven categories (content model)
 
@@ -285,16 +291,14 @@ one-file change.
   (`primelessons.org/en/RobotDesigns.html`, added 2026-08-07 for the Mechanisms
   Library) — the URL was supplied rather than fetch-verified, so **check it on the
   next link sweep**.
-- **AT-RISK LINK — `comp-bot-manual`** (the official 225-step competition bot
-  build manual, ROBOT4's primary link, added 2026-08-08). It is a **Google Drive
-  file on an account we do not control — not a Bosco Tech account** — so it can
-  be moved, permission-changed, or deleted without warning, and the first we
-  would hear of it is a team that cannot open the build they are working from.
-  It was supplied rather than fetch-verified. **TODO: upload a Bosco Tech-owned
-  copy of the PDF and swap the URL for it**, then drop this bullet. Until that
-  happens, treat it as the single most likely link in the app to break.
-  ROBOT4 keeps `robot-designs` as its `secondaryResourceId`, so if the Drive file
-  dies the item still has somewhere to send a team. If one dies, fall back to the relevant index
+- **`comp-bot-manual` is NOT an external link — we host it.** The 225-step
+  competition bot manual was a Google Drive file on an account we do not control;
+  on 2026-08-08 that copy was downloaded and committed to
+  `public/build/comp-bot-manual.pdf` (21.9 MB), and the resource's `url` now
+  points at `LOCAL_ASSETS.compBotManual`. No Drive dependency, no third-party
+  permissions, nothing to sweep. If the manual is revised, replace the file in
+  `public/build/` — do not point the resource back at anyone's Drive.
+  If a link dies, fall back to the relevant index
   (`prime-index` Lessons.html or `fllt-index` category.html) and add
   `// TODO verify-link`; for a dead media entry, replace or drop it. Never ship a
   dead link. Link only — never copy PrimeLessons / FLL Tutorials content, or
@@ -319,6 +323,24 @@ one-file change.
   9:00–11:00am** session shapes. Access: a menu item **"Session Roles"** and a
   slim, dismissible on-hub **setup bar**. Stuck + Request a Mentor remain the only
   two sticky bottom buttons.
+
+## The build manual (the season's action item)
+
+Building the competition bot is what teams are doing right now, so it gets the
+loudest surface in the app — not a link buried in an item sheet.
+
+- **`.build-bar`** is the first child of `app__main`, above the session setup bar
+  and above the category tabs: inverted black-on-gold so it cannot read as just
+  another outlined bar, and **not dismissible**. When every team has built its
+  bot, demote it (or gate it) — that is a deliberate one-line change in `App.jsx`.
+- It routes to **`#/build`** (`BuildManual.jsx`), which **embeds the PDF in-app**
+  via `<object data={LOCAL_ASSETS.compBotManual} type="application/pdf">`.
+  `<object>` not `<iframe>`: iOS Safari's inline PDF rendering is unreliable, and
+  `<object>` gives a real fallback slot when the browser refuses to embed. Two
+  buttons above the viewer ("Open full screen", "Save to this device") always
+  work, so a team is never stuck looking at a blank rectangle.
+- ROBOT4 still links to the same resource, so the item sheet and the build bar
+  lead to the same place.
 
 ## Branding tokens (see `src/styles/tokens.css`)
 
@@ -345,10 +367,12 @@ src/
     useTeamState.js     React hook over state.js
   components/           Onboarding, RosterEditor, Hub, MissionCard, MissionDetail,
                         MediaList, Troubleshooter, Menu, MentorResources,
-                        ResourceLibrary, TodayCheckin, SiteTour, DailyRhythm, Modal
+                        ResourceLibrary, TodayCheckin, SiteTour, DailyRhythm,
+                        BuildManual, Modal
   styles/               tokens.css (branding), app.css
 public/
   manifest.webmanifest, icons/   (PWA install assets)
+  build/comp-bot-manual.pdf      (21.9 MB — the season build, served by us)
 scripts/generate-icons.mjs       (regenerate PNG icons from icon.svg)
 .github/workflows/deploy.yml     (Pages build + deploy)
 ```

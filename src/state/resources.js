@@ -30,6 +30,16 @@
 const FLLT = 'https://flltutorials.com';
 const PRIME = 'https://primelessons.org/en/ProgrammingLessons';
 
+/** Vite's base path ('/fll-camp/'), with a fallback so this module can also be
+ *  imported by plain Node (the static verification harness) without blowing up. */
+const BASE = (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL) || '/fll-camp/';
+
+/** Assets we serve ourselves out of public/. Not external links — no link policy,
+ *  no owner but us, and they ship with the build. */
+export const LOCAL_ASSETS = {
+  compBotManual: `${BASE}build/comp-bot-manual.pdf`,
+};
+
 /** Browse topics, in display order. `key` is referenced by each resource's
  *  `topics` array; `label` is the kid-facing band header. The closing "More"
  *  group is handled separately (resources tagged with the 'more' topic). */
@@ -147,16 +157,17 @@ export const RESOURCES = {
   },
 
   // ---- Item-only deep links (not surfaced on the browse page) ----
-  // AT-RISK LINK — externally owned. This Drive file is NOT on a Bosco Tech
-  // account, so it can be moved, permission-changed, or deleted without warning
-  // and we would find out from a team that cannot open it.
-  // TODO: host a Bosco Tech-owned copy and swap this URL for it.
+  // SELF-HOSTED. Originally a Google Drive file on an account we do not control
+  // (drive.google.com/file/d/18biuDIcTEnGeycvEj1K0PnMxgbRZ-bfL) — that copy was
+  // downloaded on 2026-08-08 and now ships in public/build/, so this no longer
+  // depends on anyone else's Drive permissions and works with no network round
+  // trip to Google. It opens in-app at #/build rather than in a new tab.
   'comp-bot-manual': {
     id: 'comp-bot-manual',
     title: 'Official competition bot build manual',
     blurb: '225 steps: drivetrain, attachment motors, SPIKE Prime hub, and framing.',
     source: 'Season Build Manual',
-    url: 'https://drive.google.com/file/d/18biuDIcTEnGeycvEj1K0PnMxgbRZ-bfL/view',
+    url: LOCAL_ASSETS.compBotManual,
     topics: [],
     audience: 'student',
   },

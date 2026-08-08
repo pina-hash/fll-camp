@@ -13,11 +13,13 @@ import MentorResources from './components/MentorResources.jsx';
 import ResourceLibrary from './components/ResourceLibrary.jsx';
 import TodayCheckin from './components/TodayCheckin.jsx';
 import SiteTour from './components/SiteTour.jsx';
+import BuildManual from './components/BuildManual.jsx';
 import DailyRhythm from './components/DailyRhythm.jsx';
 
 const MENTOR_ROUTE = '#/mentor-resources';
 const RESOURCES_ROUTE = '#/resources';
 const TODAY_ROUTE = '#/today';
+const BUILD_ROUTE = '#/build';
 
 /** Friendly local date for the session header, e.g. "Friday, August 7". */
 function friendlyToday() {
@@ -74,6 +76,12 @@ export default function App() {
   // Mentor reference page (reachable from the menu).
   if (route === MENTOR_ROUTE) {
     return <MentorResources onBack={() => { window.location.hash = ''; }} />;
+  }
+
+  // The build manual, embedded. The season's current action item, so it also has
+  // the loudest entry point on the hub (see the build bar below).
+  if (route === BUILD_ROUTE) {
+    return <BuildManual onBack={() => { window.location.hash = ''; }} />;
   }
 
   // Student Resource Library (free-browse; menu + on-hub entry points). The
@@ -170,6 +178,25 @@ export default function App() {
       </div>
 
       <main className="app__main">
+        {/* THE action item this season, so it is the first and loudest thing on
+            the hub — above the session bar, above the tabs, not dismissible.
+            Demote it to a normal bar once every team has built the bot. */}
+        <button
+          type="button"
+          className="build-bar"
+          onClick={() => { window.location.hash = BUILD_ROUTE; }}
+        >
+          <span className="build-bar__icon" aria-hidden="true">🧱</span>
+          <span className="build-bar__body">
+            <span className="build-bar__kicker">Start here</span>
+            <span className="build-bar__title">Build the Competition Bot</span>
+            <span className="build-bar__sub">
+              All 225 steps — drivetrain, motors, hub, framing. Opens in the app.
+            </span>
+          </span>
+          <span className="build-bar__go" aria-hidden="true">→</span>
+        </button>
+
         {showSetupBar && (
           <div className="setup-bar">
             <button

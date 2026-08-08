@@ -1512,6 +1512,121 @@ h3 {
 }
 
 /* ---- On-ladder entry bar (Browse the Resource Library) -------------------- */
+/* ---- Build bar: the season's action item --------------------------------- */
+/* Deliberately the loudest thing on the hub — inverted (black on gold) so it
+   does not read as just another outlined bar like .library-bar / .setup-bar.
+   Not dismissible: it is the one thing every team must do before anything else
+   in here matters. Demote it once the bots are built. */
+.build-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--gold);
+  border: 3px solid var(--black);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.build-bar:active {
+  transform: scale(0.99);
+}
+.build-bar__icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex: none;
+}
+.build-bar__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.build-bar__kicker {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--black);
+  opacity: 0.72;
+}
+.build-bar__title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--black);
+}
+.build-bar__sub {
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: var(--black);
+  opacity: 0.8;
+}
+.build-bar__go {
+  flex: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--black);
+}
+
+/* ---- Embedded PDF viewer (#/build) --------------------------------------- */
+.pdfbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+.pdfbar__btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--black);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  color: var(--black);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.pdfbar__btn--primary {
+  background: var(--gold);
+}
+.pdfview {
+  display: block;
+  width: 100%;
+  /* Tall enough to actually read a build step on an iPad, but never taller than
+     the window — the page still scrolls past it to the footnote. */
+  height: min(75vh, 900px);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: #fff;
+}
+.pdfview__fallback {
+  padding: 1.2rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.page__footnote {
+  margin: 0.9rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
 .library-bar {
   display: flex;
   align-items: center;
