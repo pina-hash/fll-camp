@@ -146,6 +146,17 @@ export const RESOURCES = {
   },
 
   // ---- Item-only deep links (not surfaced on the browse page) ----
+  'robot-designs': {
+    id: 'robot-designs',
+    title: 'Robot design and mechanism examples',
+    blurb: 'Worked examples of gears, linkages, lifts, and grabbers.',
+    source: 'PrimeLessons',
+    // Shared by every item in the Mechanisms Library category: those items
+    // explain what a mechanism does, this is where the worked builds live.
+    url: 'https://primelessons.org/en/RobotDesigns.html',
+    topics: [],
+    audience: 'student',
+  },
   'moving-straight': {
     id: 'moving-straight',
     title: 'Moving Straight',

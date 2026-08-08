@@ -34,12 +34,12 @@ cross-team visibility — and none is planned for Phase 1.
 - **No offline-caching service worker** in this phase — season content changes and
   must never serve stale. Do not add one without revisiting this.
 
-## The five categories (content model)
+## The six categories (content model)
 
-The hub is a tab row over **five** categories. Each category declares a `kind`
+The hub is a tab row over **six** categories. Each category declares a `kind`
 that says how it renders and what it stores:
 
-- **`kind: 'items'`** — the original pattern, used by four categories. A flat list
+- **`kind: 'items'`** — the original pattern, used by five categories. A flat list
   of **items**; every item opens a detail sheet that ends in a **team strategy
   notes** box. That box is the only team-authored data an item carries.
 - **`kind: 'media'`** — used by the one Video & Resource Library category. A
@@ -53,29 +53,42 @@ that says how it renders and what it stores:
 | Core Values | `core-values` | items | CV1–CV8 | `src/state/content.js` |
 | Innovation Project | `project` | items | IP1–IP7 | `src/state/content.js` |
 | Build & Programming | `build` | items | BP1–BP9 | `src/state/content.js` |
+| Mechanisms Library | `mechanisms` | items | MECH1–MECH7 | `src/state/content.js` |
 | Video & Resource Library | `media` | media | 11 external videos + PDF guides | `src/state/resources.js` (`MEDIA_ITEMS`) |
 
 `content.js` also exports **`ITEM_CATEGORIES`** — `CATEGORIES` filtered to
 `kind === 'items'`. Anything that walks categories expecting notes, items, or
 `resourceId` must use that, not `CATEGORIES` (the mentor page does).
 
-Shared item shape for the four `items` categories (one card component + one
-detail component renders all four):
+Shared item shape for the five `items` categories (one card component + one
+detail component renders all five):
 
 ```
 {
   id,            // stable key — ALSO the strategy-note key. Never renumber.
-  num,           // short badge ('M01', 'CV3', 'BP7')
+  num,           // short badge ('M01', 'CV3', 'BP7', 'MECH4')
   title,
   description,   // one plain line for the card
   pointsLabel?,  // missions only — compact points summary for the card
   scoring?,      // missions only — [{ label, points, bonus? }] in rulebook order
   caveats?,      // missions only — [string], conditions that zero or cap the score
   lesson?,       // non-mission items — the in-app teaching; must stand alone
+  fits?,         // mechanisms only — the "Missions this fits" line: one sentence
+                 // naming the BIOGLOW missions whose physical demand it matches
   prompt,        // the question the strategy-notes box asks
   resourceId?    // optional key into resources.js for the "Go deeper" link
 }
 ```
+
+**Mechanisms Library** (`mechanisms`) is a plain `items` category — same card,
+same detail sheet, same strategy note keyed by item id, same `ITEM_INDEX`
+inclusion. Two things are specific to it: every item carries `fits` (rendered as
+a green "Missions this fits" block under the lesson, `.fits` in app.css), and all
+seven share one `resourceId` — `robot-designs` — because the items are
+*conceptual explainers*, not step-by-step builds, and the worked builds live at
+the PrimeLessons robot-design page. If a mechanism's `fits` line names a mission,
+spell it `M09 Research Platform` — number plus the exact rulebook title from
+`missions.js`.
 
 Media entry shape for the `media` category (see `MEDIA_ITEMS` in `resources.js`):
 
@@ -123,7 +136,7 @@ All reads/writes of persisted state flow through **one module**:
 - `src/state/config.js` — `STORAGE_KEY`, `STATE_VERSION`, `SEASON`, `NOTE_MAX`,
   `ROSTER_MAX`.
 - `src/state/missions.js` — BIOGLOW robot game content.
-- `src/state/content.js` — the five `CATEGORIES` (+ `ITEM_CATEGORIES`) + the three
+- `src/state/content.js` — the six `CATEGORIES` (+ `ITEM_CATEGORIES`) + the four
   non-mission item lists, plus `getItem` / `getCategory` lookups. Media entries
   are excluded from `ITEM_INDEX` — they hold no team data.
 - `src/state/resources.js` — all external "Go deeper" deep links + the media
@@ -245,7 +258,10 @@ one-file change.
   `ITEM_CATEGORIES`, so the media category is correctly skipped.
 - **Link policy:** every `RESOURCES` URL was verified to return 200 (2026-06-29);
   every `MEDIA_ITEMS` URL on 2026-08-07 (PDFs fetched directly, videos via the
-  YouTube oEmbed endpoint). If one dies, fall back to the relevant index
+  YouTube oEmbed endpoint). The one exception is `robot-designs`
+  (`primelessons.org/en/RobotDesigns.html`, added 2026-08-07 for the Mechanisms
+  Library) — the URL was supplied rather than fetch-verified, so **check it on the
+  next link sweep**. If one dies, fall back to the relevant index
   (`prime-index` Lessons.html or `fllt-index` category.html) and add
   `// TODO verify-link`; for a dead media entry, replace or drop it. Never ship a
   dead link. Link only — never copy PrimeLessons / FLL Tutorials content, or
@@ -284,8 +300,8 @@ src/
   state/
     config.js           constants (STORAGE_KEY, SEASON, NOTE_MAX, ROSTER_MAX)
     missions.js         BIOGLOW robot game content (M01–M15 + match basics)
-    content.js          the five CATEGORIES (+ ITEM_CATEGORIES) + Core Values /
-                        Project / Build items
+    content.js          the six CATEGORIES (+ ITEM_CATEGORIES) + Core Values /
+                        Project / Build / Mechanisms items
     resources.js        SINGLE source of truth for external links: RESOURCES
                         (per-item + library) and MEDIA_ITEMS (media category)
     troubleshooter.js   "Stuck?" content

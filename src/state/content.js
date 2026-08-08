@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// SKILL HUB CONTENT — the five open categories.
+// SKILL HUB CONTENT — the six open categories.
 //
 // Nothing here is gated. Every item is browsable from day one; the only team
 // data an item carries is its strategy note (state.notes[item.id]).
@@ -10,10 +10,12 @@
 //   title       what it is
 //   description one plain line for the card
 //   lesson      the in-app teaching — must stand alone, kids never need to leave
+//   fits        optional — "missions this fits", the line that ties a general
+//               skill back to specific BIOGLOW missions (Mechanisms Library)
 //   prompt      the question the strategy-notes box asks
 //   resourceId  optional — a key in resources.js for the "Go deeper" link
 //
-// Four categories use that item shape (kind: 'items'). The fifth, the Video &
+// Five categories use that item shape (kind: 'items'). The sixth, the Video &
 // Resource Library, is kind: 'media' — a curated list of external links with no
 // notes, no lesson and no detail sheet; its entries live in resources.js as
 // MEDIA_ITEMS and are deliberately kept out of ITEM_INDEX.
@@ -256,6 +258,90 @@ export const BUILD_ITEMS = [
   },
 ];
 
+// Conceptual explainers, not build instructions. Each item says what a mechanism
+// does and what it costs you, names the BIOGLOW missions whose physical demand it
+// matches (`fits`), and hands off to the PrimeLessons robot-design page for the
+// actual worked builds.
+export const MECHANISM_ITEMS = [
+  {
+    id: 'MECH1',
+    num: 'MECH1',
+    title: 'Gear Trains & Reduction',
+    description: 'Trade speed for torque — or torque for speed.',
+    lesson:
+      'Gears let you choose between speed and strength, and you only ever get one at the cost of the other. Driving a small gear into a big one turns the output slower but with far more torque, which is what you want when something on the mat resists being moved; flip it around and the output spins fast but gives up its pushing power. When a motor stalls against a model, add reduction before you add speed.',
+    fits: 'M08 Tangled and M05 Reaching Roots need force more than speed, and M12 Forest Elder has to raise the cane against gravity.',
+    prompt: 'Which of your attachments stalls or overshoots? What gear ratio would you try instead?',
+    resourceId: 'robot-designs',
+  },
+  {
+    id: 'MECH2',
+    num: 'MECH2',
+    title: 'Worm Gear',
+    description: 'Holds its position with the motor switched off.',
+    lesson:
+      'A worm gear drives the wheel it meshes with, but that wheel can never drive it back — so whatever you lift stays lifted after the motor stops, with no power draw and no drift. That makes it the safe choice for anything that has to hold a load in place. The trade is speed: a worm gear is slow, so use it where slow and controlled is exactly the point.',
+    fits: 'M09 Research Platform has to stay raised, M12 Forest Elder has to hold the cane against the tree, and M15 Biocentric Architecture has to leave the nesting canopy up.',
+    prompt: 'What does your robot lift that has to stay up after the motor stops?',
+    resourceId: 'robot-designs',
+  },
+  {
+    id: 'MECH3',
+    num: 'MECH3',
+    title: 'Rack and Pinion',
+    description: 'Turns a spinning motor into a straight push or pull.',
+    lesson:
+      'A pinion is a gear; a rack is the straight toothed beam it runs along. Spin the pinion and the rack slides in a dead-straight line, which is how you turn rotation into a push or a pull without swinging an arm through an arc. Your reach is limited to the length of the rack, so measure the travel you need before you build it.',
+    fits: 'M05 Reaching Roots and M07 Humongous Fungus both score for extending something straight out, and M15 Biocentric Architecture needs the garden skylight pushed in.',
+    prompt: 'How far does the thing you are extending actually have to travel? Measure it first.',
+    resourceId: 'robot-designs',
+  },
+  {
+    id: 'MECH4',
+    num: 'MECH4',
+    title: 'Four-Bar Linkage',
+    description: 'An arm that stays level all the way through its swing.',
+    lesson:
+      'A four-bar linkage is two parallel arms joined between a fixed frame and a moving end, so the end piece keeps the same angle no matter how high the arm travels. That is what stops a load tipping off, or a hook rolling out of position, partway through a lift. One motor buys you a controlled lift on a predictable path.',
+    fits: 'M13 Keystone Species has to arrive on the restoration platform level, and M01 Drone Survey needs the drone lifted clear of the mat without dumping it.',
+    prompt: 'Does anything you carry tip or slide when the arm moves? Where would a level arm help?',
+    resourceId: 'robot-designs',
+  },
+  {
+    id: 'MECH5',
+    num: 'MECH5',
+    title: 'Scissor Lift',
+    description: 'Straight-up height from a small footprint.',
+    lesson:
+      'A scissor lift is crossed arms pinned at their middles; squeeze the bottom ends together and the platform on top rises straight up instead of leaning. It packs flat, so it costs you almost nothing at inspection, and it reaches much higher than its folded size suggests. It is fiddly to build square, so expect to spend a session getting the pivots free and the frame from twisting.',
+    fits: 'M09 Research Platform and M15 Biocentric Architecture both score for raising something, and the flat packed height helps at Equipment Inspection.',
+    prompt: 'How high does it actually need to go? Build to that height, not higher.',
+    resourceId: 'robot-designs',
+  },
+  {
+    id: 'MECH6',
+    num: 'MECH6',
+    title: 'Gripper / Claw',
+    description: 'Pick a model up and still have it when you arrive.',
+    lesson:
+      'A gripper has two jobs: close on the model, and not let go while the robot drives. Almost every failure is the second one — the grip loosens over a bumpy run, or the piece rotates in the jaws — so build a hard stop or shape the jaw to match the model instead of relying on clamping force alone. Rubber tyres or a soft tip give you grip without crushing the piece.',
+    fits: 'M03 Flip the Rock has to bring the rock home, M13 Keystone Species has to deliver onto the platform, and M14 Seeds of Renewal carries seeds across the mat.',
+    prompt: 'What are you carrying, and what stops it falling out halfway? Drive the whole route loaded.',
+    resourceId: 'robot-designs',
+  },
+  {
+    id: 'MECH7',
+    num: 'MECH7',
+    title: 'Passive vs Active Attachments',
+    description: 'Every motor you add is one more thing that can go wrong.',
+    lesson:
+      'A passive attachment has no motor — a hook, a fork, or a wedge that does its job purely because the robot drove somewhere. It cannot mis-time, it cannot run out of ports, and it swaps in fast, so use one wherever driving alone can score. An active attachment costs a motor and a port but does things driving cannot, so spend those motors only on the missions that genuinely need them.',
+    fits: 'M02 Exploding Seeds, M10 Fragile Microhabitats and M08 Tangled can score passively as the robot drives past, while M09 Research Platform and M15 Biocentric Architecture need real motor actions.',
+    prompt: 'Which of your attachments could lose its motor and still score? Try the passive version first.',
+    resourceId: 'robot-designs',
+  },
+];
+
 /** The open categories, in display order.
  *
  *  `kind` says how the category renders and what it stores:
@@ -308,6 +394,17 @@ export const CATEGORIES = [
     intro:
       'The skills every mission depends on. Each one has a short lesson, and most link out to a full guide from PrimeLessons or FLL Tutorials.',
     items: BUILD_ITEMS,
+  },
+  {
+    id: 'mechanisms',
+    kind: 'items',
+    label: 'Mechanisms Library',
+    short: 'Mechanisms',
+    icon: '⚙️',
+    tagline: 'What to build and why',
+    intro:
+      'The mechanisms most FLL attachments are made of: what each one does, what it trades away, and which BIOGLOW missions it suits. These are explainers, not step-by-step builds — read the idea here, use "Go deeper" for worked examples, and use the notes to record what your team actually built.',
+    items: MECHANISM_ITEMS,
   },
   {
     id: 'media',

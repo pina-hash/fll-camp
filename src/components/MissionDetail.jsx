@@ -2,7 +2,9 @@ import Modal from './Modal.jsx';
 import { resourceById, ATTRIBUTION } from '../state/resources.js';
 
 // Detail sheet for any Skill Hub item. Missions show their scoring breakdown;
-// skill items show their in-app lesson. Both end in the same thing: the team's
+// skill items show their in-app lesson, and mechanisms add a "missions this
+// fits" line pointing back at the robot game. All of them end in the same thing:
+// the team's
 // strategy notes, free text, autosaved, editable by anyone on the team at any
 // time. There is no gate, no completion, and nothing to unlock.
 export default function MissionDetail({ item, note, onSetNote, onClose }) {
@@ -22,6 +24,13 @@ export default function MissionDetail({ item, note, onSetNote, onClose }) {
         <div className="lesson">
           <span className="lesson__label">Lesson</span>
           <p className="lesson__text">{item.lesson}</p>
+        </div>
+      )}
+
+      {item.fits && (
+        <div className="fits">
+          <span className="fits__label">Missions this fits</span>
+          <p className="fits__text">{item.fits}</p>
         </div>
       )}
 
