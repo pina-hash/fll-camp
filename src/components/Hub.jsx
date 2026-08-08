@@ -2,11 +2,11 @@ import MissionCard from './MissionCard.jsx';
 import MediaList from './MediaList.jsx';
 import { CATEGORIES } from '../state/content.js';
 
-// The Skill Hub: six open categories, nothing locked, nothing sequential. A tab
-// row picks the category; the whole category's content is listed underneath.
+// The Skill Hub: seven open categories, nothing locked, nothing sequential. A
+// tab row picks the category; the whole category's content is listed underneath.
 //
-// Five categories are `kind: 'items'` — a card per item, each opening a detail
-// sheet with a team strategy note. The sixth is `kind: 'media'`, a filterable
+// Six categories are `kind: 'items'` — a card per item, each opening a detail
+// sheet with a team strategy note. The seventh is `kind: 'media'`, a filterable
 // jump-off list of external videos and guides with no notes and no drill-down.
 export default function Hub({ activeCategory, onSelectCategory, hasNote, onOpen }) {
   const category = CATEGORIES.find((c) => c.id === activeCategory) ?? CATEGORIES[0];

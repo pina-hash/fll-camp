@@ -1,12 +1,12 @@
 // ---------------------------------------------------------------------------
-// SKILL HUB CONTENT — the six open categories.
+// SKILL HUB CONTENT — the seven open categories.
 //
 // Nothing here is gated. Every item is browsable from day one; the only team
 // data an item carries is its strategy note (state.notes[item.id]).
 //
 // Item shape (shared with missions.js so one card + one detail view render both):
 //   id          stable key — also the strategy-note key. Never renumber.
-//   num         short badge
+//   num         short badge ('M01', 'CV3', 'BP7', 'MECH4', 'ROBOT1')
 //   title       what it is
 //   description one plain line for the card
 //   lesson      the in-app teaching — must stand alone, kids never need to leave
@@ -15,7 +15,7 @@
 //   prompt      the question the strategy-notes box asks
 //   resourceId  optional — a key in resources.js for the "Go deeper" link
 //
-// Five categories use that item shape (kind: 'items'). The sixth, the Video &
+// Six categories use that item shape (kind: 'items'). The seventh, the Video &
 // Resource Library, is kind: 'media' — a curated list of external links with no
 // notes, no lesson and no detail sheet; its entries live in resources.js as
 // MEDIA_ITEMS and are deliberately kept out of ITEM_INDEX.
@@ -23,6 +23,72 @@
 
 import { ROBOT_GAME_ITEMS } from './missions.js';
 import { MEDIA_ITEMS } from './resources.js';
+
+// The robot itself, before any mission strategy: what the hardware is, which
+// sensors are legal, and the equipment rules the whole kit has to pass. Sits
+// first in CATEGORIES because everything else assumes this.
+//
+// PROVENANCE: the legal-sensor list in ROBOT3 (force/touch, colour, distance,
+// gyro) is the BIOGLOW Robot Game Rulebook's, supplied for this content — this
+// repo does not carry the rulebook's equipment section. The ROBOT6 numbers come
+// from the INSPECT item in missions.js (one launch area, under 12 in, 20 pts).
+export const ROBOT_ITEMS = [
+  {
+    id: 'ROBOT1',
+    num: 'ROBOT1',
+    title: 'The Hub',
+    description: 'The brick everything else plugs into.',
+    lesson:
+      'The hub is the robot\'s brain. Six ports around its edge take motors and sensors in any combination, and the display in the middle shows you what the hub thinks is happening. Press the round centre button to switch it on and hold it to switch it off — and remember that whatever port you plug a motor into is the port your program has to name, so pick a port layout once and write it down.',
+    prompt: 'Which hub is yours, and what is plugged into each port? Write the port map here.',
+  },
+  {
+    id: 'ROBOT2',
+    num: 'ROBOT2',
+    title: 'Motors',
+    description: 'Large for driving, medium for attachments.',
+    lesson:
+      'You get two sizes of motor and they are good at different jobs. The large motor has more turning force, which is why it drives the wheels and moves the whole robot. The medium motor is smaller and lighter, so it is the one to put on an attachment where weight high up on the robot would make it tip. Both report their exact position back to the hub, so either can be told to turn a precise number of degrees.',
+    prompt: 'Which motors drive your base, and which are free for attachments?',
+  },
+  {
+    id: 'ROBOT3',
+    num: 'ROBOT3',
+    title: "Sensors You're Allowed to Use",
+    description: 'Four sensors are legal. That is the whole list.',
+    lesson:
+      'The Robot Game Rulebook allows four kinds of sensor: the force (touch) sensor, the colour sensor, the distance (ultrasonic) sensor, and the gyro built into the hub itself. Nothing else is legal, however useful it looks. In practice the colour sensor and the gyro earn their keep most often, because those are the two that stop a long run from drifting off course.',
+    prompt: 'Which sensors are on your robot right now, and what does each one actually do for you?',
+  },
+  {
+    id: 'ROBOT4',
+    num: 'ROBOT4',
+    title: 'The Driving Base',
+    description: 'Build this first. Everything else sits on it.',
+    lesson:
+      'Every robot starts as a driving base: two motors, two wheels, and a frame stiff enough that the robot goes where you point it. Build it before you build a single attachment, because every mission you ever attempt inherits how straight and how repeatably this thing drives. Do not invent one from nothing on your first try — start from a proven base, then change it once you can say why.',
+    prompt: 'Which base design are you starting from, and who on the team is building it?',
+    resourceId: 'robot-designs',
+  },
+  {
+    id: 'ROBOT5',
+    num: 'ROBOT5',
+    title: 'Building vs Programming',
+    description: 'The build decides what is possible; the code decides when.',
+    lesson:
+      'SPIKE Prime is two halves that only work together. The build sets what is physically possible — how far the arm reaches, how much force the gears deliver, whether the robot can even get there. The program sets when and how much. When a mission fails, work out which half is at fault before you change anything: no program will fix an attachment that cannot reach, and no rebuild will fix a turn that fires at the wrong moment.',
+    prompt: 'Last thing that failed — was it the build or the code? How did you tell?',
+  },
+  {
+    id: 'ROBOT6',
+    num: 'ROBOT6',
+    title: 'Equipment Rules',
+    description: 'One launch area, under 12 inches. Measure it.',
+    lesson:
+      'Everything you bring to the table has to fit inside one launch area and stay under 12 inches (about 30 cm) tall — the robot, every attachment, and anything else you plan to use during the match. Passing that check is worth 20 points at Equipment Inspection, and it is the easiest 20 points in the match to throw away by turning up with a pile that does not fit. Measure it at practice, with everything you actually intend to bring.',
+    prompt: 'What is your tallest piece of equipment, and how tall is it? Measure, do not guess.',
+  },
+];
 
 export const CORE_VALUES_ITEMS = [
   {
@@ -351,6 +417,17 @@ export const MECHANISM_ITEMS = [
  *              topic chips. No detail sheet, no strategy notes, no team data at
  *              all; its entries live in resources.js and never enter ITEM_INDEX. */
 export const CATEGORIES = [
+  {
+    id: 'robot',
+    kind: 'items',
+    label: 'Meet the Robot',
+    short: 'The Robot',
+    icon: '🎛️',
+    tagline: 'Start here before touching a mission',
+    intro:
+      'What the robot actually is, before you ask it to score anything: the hub, the motors, the sensors you are allowed to use, and the equipment rules your kit has to pass. Read these first, then use the notes to write down your own robot — port map, motors, and what you are bringing to the table.',
+    items: ROBOT_ITEMS,
+  },
   {
     id: 'missions',
     kind: 'items',

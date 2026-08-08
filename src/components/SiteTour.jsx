@@ -1,5 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { SEASON } from '../state/config.js';
+import { CATEGORIES } from '../state/content.js';
+
+// The categories step is DERIVED, not written out: a hardcoded count and list
+// goes stale the moment a category is added, and did. Everything below reads
+// CATEGORIES so the tour can only ever describe the real tab row.
+const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+const CAT_COUNT = NUMBER_WORDS[CATEGORIES.length] ?? String(CATEGORIES.length);
+const CAT_COUNT_CAP = CAT_COUNT.charAt(0).toUpperCase() + CAT_COUNT.slice(1);
+const CAT_LIST = CATEGORIES.map((c) => c.label)
+  .join(', ')
+  .replace(/, ([^,]*)$/, ', and $1');
 
 // First-run site tour: a centered modal carousel over a dimmed backdrop. Six
 // steps, each with a title, one or two plain sentences, and a small visual ECHO
@@ -14,8 +25,8 @@ const STEPS = [
     echo: 'wordmark',
   },
   {
-    title: 'Five categories',
-    body: 'Tap a tab to switch between the Robot Game missions, Core Values, the Innovation Project, Build & Code, and the Video & Resource Library. Browse them in any order, any time.',
+    title: `${CAT_COUNT_CAP} categories`,
+    body: `Tap a tab to switch between ${CAT_LIST}. Browse them in any order, any time.`,
     echo: 'cats',
   },
   {
@@ -143,18 +154,12 @@ function Echo({ kind }) {
     case 'cats':
       return (
         <div className="cat-tabs echo-cats">
-          <span className="cat-tab cat-tab--on">
-            <span className="cat-tab__icon">🤖</span>
-            <span className="cat-tab__label">Missions</span>
-          </span>
-          <span className="cat-tab">
-            <span className="cat-tab__icon">🤝</span>
-            <span className="cat-tab__label">Core Values</span>
-          </span>
-          <span className="cat-tab">
-            <span className="cat-tab__icon">🌱</span>
-            <span className="cat-tab__label">Project</span>
-          </span>
+          {CATEGORIES.slice(0, 3).map((cat, idx) => (
+            <span key={cat.id} className={`cat-tab ${idx === 0 ? 'cat-tab--on' : ''}`}>
+              <span className="cat-tab__icon">{cat.icon}</span>
+              <span className="cat-tab__label">{cat.short}</span>
+            </span>
+          ))}
         </div>
       );
     case 'mission':

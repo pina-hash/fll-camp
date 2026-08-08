@@ -34,12 +34,12 @@ cross-team visibility — and none is planned for Phase 1.
 - **No offline-caching service worker** in this phase — season content changes and
   must never serve stale. Do not add one without revisiting this.
 
-## The six categories (content model)
+## The seven categories (content model)
 
-The hub is a tab row over **six** categories. Each category declares a `kind`
+The hub is a tab row over **seven** categories. Each category declares a `kind`
 that says how it renders and what it stores:
 
-- **`kind: 'items'`** — the original pattern, used by five categories. A flat list
+- **`kind: 'items'`** — the original pattern, used by six categories. A flat list
   of **items**; every item opens a detail sheet that ends in a **team strategy
   notes** box. That box is the only team-authored data an item carries.
 - **`kind: 'media'`** — used by the one Video & Resource Library category. A
@@ -49,6 +49,7 @@ that says how it renders and what it stores:
 
 | Category | id | kind | Contents | Source file |
 |---|---|---|---|---|
+| Meet the Robot | `robot` | items | ROBOT1–ROBOT6 | `src/state/content.js` |
 | Robot Game Missions | `missions` | items | M01–M15 + Equipment Inspection + Precision Tokens | `src/state/missions.js` |
 | Core Values | `core-values` | items | CV1–CV8 | `src/state/content.js` |
 | Innovation Project | `project` | items | IP1–IP7 | `src/state/content.js` |
@@ -60,13 +61,13 @@ that says how it renders and what it stores:
 `kind === 'items'`. Anything that walks categories expecting notes, items, or
 `resourceId` must use that, not `CATEGORIES` (the mentor page does).
 
-Shared item shape for the five `items` categories (one card component + one
-detail component renders all five):
+Shared item shape for the six `items` categories (one card component + one
+detail component renders all six):
 
 ```
 {
   id,            // stable key — ALSO the strategy-note key. Never renumber.
-  num,           // short badge ('M01', 'CV3', 'BP7', 'MECH4')
+  num,           // short badge ('M01', 'CV3', 'BP7', 'MECH4', 'ROBOT1')
   title,
   description,   // one plain line for the card
   pointsLabel?,  // missions only — compact points summary for the card
@@ -89,6 +90,17 @@ seven share one `resourceId` — `robot-designs` — because the items are
 the PrimeLessons robot-design page. If a mechanism's `fits` line names a mission,
 spell it `M09 Research Platform` — number plus the exact rulebook title from
 `missions.js`.
+
+**Meet the Robot** (`robot`) is a plain `items` category and sits **first** in
+`CATEGORIES` — its tagline promises "start here", so it leads the tab row. Note
+that the landing tab is still hardcoded `useState('missions')` in `App.jsx`, not
+`CATEGORIES[0]`; `CATEGORIES[0]` is only the fallback for an unknown id in
+`getCategory` / `Hub`. Change both if you want the app to open on the robot tab.
+ROBOT3's legal-sensor list (force/touch, colour, distance, gyro) comes from the
+Robot Game Rulebook's equipment section, which this repo does not carry — it was
+supplied for this content, so re-check it against the rulebook before a season
+briefing. ROBOT6's numbers are the `INSPECT` item's in `missions.js` (one launch
+area, under 12 in, 20 points) and must stay in step with it.
 
 Media entry shape for the `media` category (see `MEDIA_ITEMS` in `resources.js`):
 
@@ -136,7 +148,7 @@ All reads/writes of persisted state flow through **one module**:
 - `src/state/config.js` — `STORAGE_KEY`, `STATE_VERSION`, `SEASON`, `NOTE_MAX`,
   `ROSTER_MAX`.
 - `src/state/missions.js` — BIOGLOW robot game content.
-- `src/state/content.js` — the six `CATEGORIES` (+ `ITEM_CATEGORIES`) + the four
+- `src/state/content.js` — the seven `CATEGORIES` (+ `ITEM_CATEGORIES`) + the five
   non-mission item lists, plus `getItem` / `getCategory` lookups. Media entries
   are excluded from `ITEM_INDEX` — they hold no team data.
 - `src/state/resources.js` — all external "Go deeper" deep links + the media
@@ -271,7 +283,10 @@ one-file change.
 
 - **First-run site tour** (`SiteTour.jsx`). A centered modal carousel (6 steps,
   progress dots, Back/Next, Skip + X, swipe + arrow keys). Each step shows a small
-  CSS-built **echo** of a real element (no images/screenshots). Gated by the
+  CSS-built **echo** of a real element (no images/screenshots). The categories
+  step — its title, its list of names, and its tab echo — is **derived from
+  `CATEGORIES`**, never written out, because a hardcoded count goes stale the
+  moment a category is added. Gated by the
   per-device `seenTour` flag: auto-launches once when a team first reaches the hub;
   finish/skip/X/Esc/backdrop all call `markTourSeen`. The menu item **"How This
   Works"** reopens it any time, independent of the flag.
@@ -300,8 +315,8 @@ src/
   state/
     config.js           constants (STORAGE_KEY, SEASON, NOTE_MAX, ROSTER_MAX)
     missions.js         BIOGLOW robot game content (M01–M15 + match basics)
-    content.js          the six CATEGORIES (+ ITEM_CATEGORIES) + Core Values /
-                        Project / Build / Mechanisms items
+    content.js          the seven CATEGORIES (+ ITEM_CATEGORIES) + Robot / Core
+                        Values / Project / Build / Mechanisms items
     resources.js        SINGLE source of truth for external links: RESOURCES
                         (per-item + library) and MEDIA_ITEMS (media category)
     troubleshooter.js   "Stuck?" content

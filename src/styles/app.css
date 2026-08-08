@@ -2134,7 +2134,7 @@ h3 {
   gap: 1.1rem;
 }
 
-/* Category tabs: a horizontally scrollable row of six. */
+/* Category tabs: a horizontally scrollable row of seven. */
 .cat-tabs {
   display: flex;
   gap: 0.5rem;
