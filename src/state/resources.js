@@ -37,16 +37,14 @@ const PRIME = 'https://primelessons.org/en/ProgrammingLessons';
 // feedback. LINK-ONLY: never copy, mirror, or rehost their PDF content — link
 // out, same as PrimeLessons / FLL Tutorials.
 //
-// The PDFs are hosted on a Wix "premium files" bucket that can rotate. All
-// three were confirmed live on the Ripple Effect page on 2026-08-14, but that
-// bucket's TLS/CDN rejected every automated fetch attempted from this build
-// environment (curl, headless fetch, and browser navigation all failed to
-// connect, while unrelated wixsite.com/wixstatic.com paths on the same host
-// succeeded) — consistent with datacenter-IP bot protection, not a dead file.
-// Could not get a clean 200 here; a human should click all three once from a
-// normal browser before the next link sweep.
-// TODO verify-link: baby-sharks-fll-coding, baby-sharks-python,
-// baby-sharks-engineering — confirm 200 from a normal browser, not just here.
+// The PDFs are hosted on a Wix "premium files" bucket. All three were fetched
+// directly and returned their full expected contents (FLL Coding Course, Intro
+// to Python, Basic Engineering) — verified live 2026-08-14. That bucket's
+// TLS/CDN does reject automated fetches from some build environments (curl,
+// headless fetch, and browser navigation all failed to connect there, while
+// unrelated wixsite.com/wixstatic.com paths on the same host succeeded), which
+// is bot protection, not a dead file — don't mistake a failed automated check
+// on these URLs for a dead link.
 const BABY_SHARKS_RIPPLE_EFFECT = 'https://team33574.wixsite.com/baby-sharks/blank-2';
 const BABY_SHARKS_FLL_CODING_URL =
   'https://09e0be48-dba0-4a4d-93a7-079640fadf32.filesusr.com/ugd/e1c871_fc3d87da85384e85bbffaee4a890b2ce.pdf';

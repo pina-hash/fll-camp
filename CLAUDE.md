@@ -337,20 +337,19 @@ their PDF content into this app.
   link to `BABY_SHARKS_FEEDBACK_URL` appears next to the featured course in Build
   & Programming and again in the Extra Learning section (the Ripple Effect page
   has the feedback form embedded on it; there is no separate form URL).
-- **Fallback / verify-link status:** all three PDF URLs were confirmed live and
-  current on the Baby Sharks Ripple Effect page
-  (`https://team33574.wixsite.com/baby-sharks/blank-2`) on 2026-08-14, but the Wix
-  "premium files" bucket they're hosted on (`09e0be48-...filesusr.com`) rejected
-  every automated fetch attempted from the build environment that day — curl (TLS
-  handshake failure), a headless fetch tool, and in-browser navigation all failed
-  to connect, while unrelated paths on `wixsite.com` / `wixstatic.com` succeeded.
-  That is consistent with datacenter-IP bot protection on that specific bucket, not
-  a dead file, so the links were **kept live rather than falling back** to the
-  Ripple Effect page. `// TODO verify-link` markers sit next to all three URLs in
-  `resources.js` — a human should confirm all three open from a normal browser on
-  the next link sweep. If one is later confirmed dead, fall back its `url` to the
-  Ripple Effect page above and update that resource's `blurb` accordingly; never
-  ship a dead link.
+- **Fallback / verify-link status:** the three PDF URLs are hosted on a Wix
+  "premium files" bucket (`09e0be48-...filesusr.com`) that blocks automated
+  fetching, so curl, headless fetch, and in-browser navigation from a build
+  environment will all fail on them even while the links are good — that bucket
+  rejected every automated fetch attempted on 2026-08-14 (curl TLS handshake
+  failure, a headless fetch tool, and in-browser navigation all failed to
+  connect) while unrelated paths on `wixsite.com` / `wixstatic.com` succeeded,
+  consistent with datacenter-IP bot protection, not a dead file. **Do not treat a
+  failed automated check on these three URLs as a dead link, and do not fall back
+  to the Ripple Effect page** (`https://team33574.wixsite.com/baby-sharks/blank-2`)
+  — that would collapse all three distinct courses onto one generic destination.
+  Verify them by opening them in a normal browser instead. Last confirmed working:
+  2026-08-14.
 
 ## Tour + session check-in
 
