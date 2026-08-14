@@ -1,4 +1,10 @@
-import { TOPICS, resourcesForTopic, ATTRIBUTION } from '../state/resources.js';
+import {
+  TOPICS,
+  resourcesForTopic,
+  extraLearningResources,
+  BABY_SHARKS_FEEDBACK_URL,
+  ATTRIBUTION,
+} from '../state/resources.js';
 import { SEASON } from '../state/config.js';
 
 // Student Resource Library (route #/resources). Pure free-browse: no gating, no
@@ -8,6 +14,7 @@ import { SEASON } from '../state/config.js';
 // the Stuck troubleshooter. Built the same way as the /mentor-resources page.
 export default function ResourceLibrary({ onBack, onOpenTroubleshooter }) {
   const more = resourcesForTopic('more');
+  const extraLearning = extraLearningResources();
 
   return (
     <div className="page">
@@ -50,6 +57,27 @@ export default function ResourceLibrary({ onBack, onOpenTroubleshooter }) {
                 <ResourceCard key={res.id} res={res} />
               ))}
             </ul>
+          </section>
+        )}
+
+        {extraLearning.length > 0 && (
+          <section className="reslist">
+            <h2 className="reslist__head">Extra Learning (Optional)</h2>
+            <p className="reslist__note">
+              Not FLL season content — free courses from Baby Sharks (FTC Team 33574) for anyone
+              who wants to go further.
+            </p>
+            <ul className="reslist__items">
+              {extraLearning.map((res) => (
+                <ResourceCard key={res.id} res={res} />
+              ))}
+            </ul>
+            <p className="reslist__note">
+              Our teams are giving feedback on these courses —{' '}
+              <a href={BABY_SHARKS_FEEDBACK_URL} target="_blank" rel="noopener noreferrer">
+                see the feedback form ↗
+              </a>
+            </p>
           </section>
         )}
 

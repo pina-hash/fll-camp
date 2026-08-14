@@ -7,14 +7,16 @@
 //   - the student Resource Library page   (TOPICS + resourcesForTopic, #/resources)
 //   - the mentor reference page           (MENTOR_LINK_IDS, #/mentor-resources)
 //
-// Each resource: { id, title, blurb, source, url, topics, audience }
-//   title    kid-friendly name
-//   blurb    one short line — what it helps you do
-//   source   'PrimeLessons' | 'FLL Tutorials' | 'Season Build Manual'
-//            (drives the source chip)
-//   url      the verified deep link (never a homepage)
-//   topics   browse-topic keys it appears under on the library page ([] = not browsed)
-//   audience 'student' | 'mentor'
+// Each resource: { id, title, blurb, source, url, topics, audience, deeplinkLabel? }
+//   title          kid-friendly name
+//   blurb          one short line — what it helps you do
+//   source         'PrimeLessons' | 'FLL Tutorials' | 'Season Build Manual' |
+//                  'Baby Sharks (Team 33574)' (drives the source chip)
+//   url            the verified deep link (never a homepage)
+//   topics         browse-topic keys it appears under on the library page ([] = not browsed)
+//   audience       'student' | 'mentor'
+//   deeplinkLabel  optional — overrides the "Go deeper ↗" / "Also see ↗" line on an
+//                  item's detail sheet (see itemResources -> MissionDetail.jsx)
 //
 // Each Skill Hub item's PRIMARY teaching is its in-app lesson (`lesson` in
 // content.js). These deep links are the OPTIONAL, secondary "Go deeper". The
@@ -29,6 +31,33 @@
 
 const FLLT = 'https://flltutorials.com';
 const PRIME = 'https://primelessons.org/en/ProgrammingLessons';
+
+// Baby Sharks (FTC Team 33574) shared these three free course PDFs with us
+// directly; Mr. Garza has committed our teams to using them and is giving
+// feedback. LINK-ONLY: never copy, mirror, or rehost their PDF content — link
+// out, same as PrimeLessons / FLL Tutorials.
+//
+// The PDFs are hosted on a Wix "premium files" bucket that can rotate. All
+// three were confirmed live on the Ripple Effect page on 2026-08-14, but that
+// bucket's TLS/CDN rejected every automated fetch attempted from this build
+// environment (curl, headless fetch, and browser navigation all failed to
+// connect, while unrelated wixsite.com/wixstatic.com paths on the same host
+// succeeded) — consistent with datacenter-IP bot protection, not a dead file.
+// Could not get a clean 200 here; a human should click all three once from a
+// normal browser before the next link sweep.
+// TODO verify-link: baby-sharks-fll-coding, baby-sharks-python,
+// baby-sharks-engineering — confirm 200 from a normal browser, not just here.
+const BABY_SHARKS_RIPPLE_EFFECT = 'https://team33574.wixsite.com/baby-sharks/blank-2';
+const BABY_SHARKS_FLL_CODING_URL =
+  'https://09e0be48-dba0-4a4d-93a7-079640fadf32.filesusr.com/ugd/e1c871_fc3d87da85384e85bbffaee4a890b2ce.pdf';
+const BABY_SHARKS_PYTHON_URL =
+  'https://09e0be48-dba0-4a4d-93a7-079640fadf32.filesusr.com/ugd/e1c871_4116b158b7db46a3b4d0467a7f71e08c.pdf';
+const BABY_SHARKS_ENGINEERING_URL =
+  'https://09e0be48-dba0-4a4d-93a7-079640fadf32.filesusr.com/ugd/e1c871_970cff19b9ad47da8d72263a262fef4b.pdf';
+
+/** Where the team's feedback form for the Baby Sharks courses lives (embedded
+ *  on their Ripple Effect page — there is no separate form URL). */
+export const BABY_SHARKS_FEEDBACK_URL = BABY_SHARKS_RIPPLE_EFFECT;
 
 /** Vite's base path ('/fll-camp/'), with a fallback so this module can also be
  *  imported by plain Node (the static verification harness) without blowing up. */
@@ -179,6 +208,7 @@ export const RESOURCES = {
     // Shared by every item in the Mechanisms Library category: those items
     // explain what a mechanism does, this is where the worked builds live.
     url: 'https://primelessons.org/en/RobotDesigns.html',
+    deeplinkLabel: 'More training designs ↗',
     topics: [],
     audience: 'student',
   },
@@ -188,6 +218,75 @@ export const RESOURCES = {
     blurb: 'Tune your robot so it drives a true straight line.',
     source: 'PrimeLessons',
     url: `${PRIME}/SP3MovingStraight.pdf`,
+    topics: [],
+    audience: 'student',
+  },
+
+  // ---- Baby Sharks (FTC Team 33574) — free course library, shared directly ----
+  // Link only, never copied. 'baby-sharks-fll-coding' is the season-relevant
+  // primary resource (see its lesson index alongside Build & Programming in the
+  // hub); the lesson-specific ids below point at the same PDF but exist so a
+  // specific BP item's "Go deeper" line can name the exact lesson to open.
+  'baby-sharks-fll-coding': {
+    id: 'baby-sharks-fll-coding',
+    title: 'Baby Sharks FLL Coding Course',
+    blurb:
+      'Free SPIKE Prime word-block course from FTC Team 33574 — beginner to advanced, with mini challenges throughout. See the lesson index in Build & Programming to jump straight to what you need.',
+    source: 'Baby Sharks (Team 33574)',
+    url: BABY_SHARKS_FLL_CODING_URL,
+    topics: ['driving', 'sensors', 'strategy'],
+    audience: 'student',
+  },
+  'baby-sharks-l2-driving': {
+    id: 'baby-sharks-l2-driving',
+    title: 'Baby Sharks: L2 Basic Movement + L9 Gyro Straight',
+    blurb: 'Driving and turning, from the Baby Sharks FLL Coding Course.',
+    source: 'Baby Sharks (Team 33574)',
+    url: BABY_SHARKS_FLL_CODING_URL,
+    deeplinkLabel: 'Baby Sharks lesson ↗',
+    topics: [],
+    audience: 'student',
+  },
+  'baby-sharks-l5-sensors': {
+    id: 'baby-sharks-l5-sensors',
+    title: 'Baby Sharks: L5 Sensors + L9 Line Following',
+    blurb: 'Sensors and lines, from the Baby Sharks FLL Coding Course.',
+    source: 'Baby Sharks (Team 33574)',
+    url: BABY_SHARKS_FLL_CODING_URL,
+    deeplinkLabel: 'Baby Sharks lesson ↗',
+    topics: [],
+    audience: 'student',
+  },
+  'baby-sharks-l5-5-reliability': {
+    id: 'baby-sharks-l5-5-reliability',
+    title: 'Baby Sharks: L5.5 Robot Consistency + Troubleshooting',
+    blurb: 'Consistency and reliability, from the Baby Sharks FLL Coding Course.',
+    source: 'Baby Sharks (Team 33574)',
+    url: BABY_SHARKS_FLL_CODING_URL,
+    deeplinkLabel: 'Baby Sharks lesson ↗',
+    topics: [],
+    audience: 'student',
+  },
+  // Optional, NOT FLL season content — kept out of every topic band so they
+  // never read as part of the season skill path. Surfaced only in the Resource
+  // Library's "Extra Learning" group.
+  'baby-sharks-python': {
+    id: 'baby-sharks-python',
+    title: 'Baby Sharks Intro to Python Course',
+    blurb:
+      'Optional, not FLL content. 13 lessons, variables through try/except, ending in a from-scratch project — runs free in the browser at online-python.com, no install.',
+    source: 'Baby Sharks (Team 33574)',
+    url: BABY_SHARKS_PYTHON_URL,
+    topics: [],
+    audience: 'student',
+  },
+  'baby-sharks-engineering': {
+    id: 'baby-sharks-engineering',
+    title: 'Baby Sharks Basic Engineering Course',
+    blurb:
+      'Optional, not FLL content. Design process, the five robot subsystems, gears and torque, simple machines, logic and pseudocode, a final design challenge, and a glossary — aimed at late elementary and middle school.',
+    source: 'Baby Sharks (Team 33574)',
+    url: BABY_SHARKS_ENGINEERING_URL,
     topics: [],
     audience: 'student',
   },
@@ -206,6 +305,36 @@ export const RESOURCES = {
 
 /** Resource ids shown in the mentor page's "Mentor-only references" section. */
 export const MENTOR_LINK_IDS = ['coachs-guide', 'prime-index', 'fllt-index'];
+
+/** Resource ids for the Resource Library's "Extra Learning" group — optional,
+ *  not FLL season content, kept visibly separate from the topic bands above. */
+export const EXTRA_LEARNING_IDS = ['baby-sharks-python', 'baby-sharks-engineering'];
+
+/** The Baby Sharks FLL Coding Course's lesson index, in course order — lets a
+ *  student jump straight to the lesson they need instead of scrolling the PDF.
+ *  `num` matches the course's own lesson numbering (including the two half
+ *  lessons, L5.5 and L8.5). */
+export const BABY_SHARKS_LESSON_INDEX = [
+  { num: 'L1', title: 'Getting started with SPIKE Prime', note: 'App setup, hub connection, block types' },
+  { num: 'L2', title: 'Basic movement', note: 'Drive, two turning methods, rotations vs degrees' },
+  { num: 'L3', title: 'Loops' },
+  { num: 'L4', title: 'Conditionals' },
+  { num: 'L5', title: 'Sensors', note: 'Color, distance, touch, gyro' },
+  { num: 'L5.5', title: 'Robot consistency', note: 'Drift causes, hub placement' },
+  { num: 'L6', title: 'Variables' },
+  { num: 'L7', title: 'Operators' },
+  { num: 'L8', title: 'MyBlocks', note: 'Custom blocks' },
+  { num: 'L8.5', title: 'Self-adjusting code' },
+  {
+    num: 'L9',
+    title: 'Gyro turn, line following, gyro straight',
+    note: 'The three core FLL codes — each with its own troubleshooting page',
+  },
+  { num: 'L10', title: 'Lights and sounds' },
+  { num: 'L11', title: 'Final project', note: 'Autonomous obstacle avoidance, built in six steps' },
+  { num: 'L12', title: 'Conclusion' },
+  { num: '★', title: 'Printable summary sheet', note: 'One-page cheat sheet at the back of the course' },
+];
 
 // ===========================================================================
 // MEDIA LIBRARY — the "Video & Resource Library" hub category.
@@ -376,7 +505,8 @@ export function mediaTopicLabel(key) {
 }
 
 export const ATTRIBUTION =
-  'Skill lessons by PrimeLessons.org (CC-BY-NC-SA). Mission tutorials by FLL Tutorials.';
+  'Skill lessons by PrimeLessons.org (CC-BY-NC-SA). Mission tutorials by FLL Tutorials. ' +
+  'FLL Coding, Python, and Engineering courses by Baby Sharks — FTC Team 33574, linked with their permission, never copied.';
 
 /** The resource behind an item's `resourceId`, or null. Returns the canonical
  *  entry with a derived `label` for the "Go deeper" affordance. */
@@ -384,6 +514,11 @@ export function resourceById(id) {
   const res = id ? RESOURCES[id] : null;
   if (!res) return null;
   return { ...res, label: `${res.title} — ${res.source}` };
+}
+
+/** Resources shown in the Resource Library's "Extra Learning" group. */
+export function extraLearningResources() {
+  return EXTRA_LEARNING_IDS.map((id) => RESOURCES[id]).filter(Boolean);
 }
 
 /** An item's deep links, PRIMARY FIRST: `resourceId`, then the optional

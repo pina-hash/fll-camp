@@ -258,16 +258,18 @@ one-file change.
   ```
   RESOURCES[id] = {
     id, title, blurb,
-    source: 'PrimeLessons' | 'FLL Tutorials' | 'Season Build Manual',
+    source: 'PrimeLessons' | 'FLL Tutorials' | 'Season Build Manual' | 'Baby Sharks (Team 33574)',
     url,                      // verified deep link (never a homepage)
     topics: TopicKey[],       // browse-topic keys ([] = not surfaced on the library page)
-    audience: 'student' | 'mentor'
+    audience: 'student' | 'mentor',
+    deeplinkLabel?             // optional override for the "Go deeper ↗" / "Also see ↗" line
   }
   ```
 
-  Also exported: `TOPICS`, `MENTOR_LINK_IDS`, `ATTRIBUTION`, and helpers
+  Also exported: `TOPICS`, `MENTOR_LINK_IDS`, `EXTRA_LEARNING_IDS`, `ATTRIBUTION`,
+  `BABY_SHARKS_LESSON_INDEX`, `BABY_SHARKS_FEEDBACK_URL`, and helpers
   `resourceById(id)`, `itemResources(item)`, `resourcesForTopic(topicKey)`,
-  `mentorLinks()`.
+  `mentorLinks()`, `extraLearningResources()`.
 - **Three consumers of `RESOURCES`, all by id:** an item's deep links via
   `itemResources(item)` (optional, up to two), the student **Resource Library**
   page, and the mentor page.
@@ -303,6 +305,52 @@ one-file change.
   `// TODO verify-link`; for a dead media entry, replace or drop it. Never ship a
   dead link. Link only — never copy PrimeLessons / FLL Tutorials content, or
   embed video, into the app.
+
+### Baby Sharks (FTC Team 33574) course library
+
+Three free PDF courses shared with us **directly** by Team 33574; Mr. Garza has
+committed our teams to using them and is giving feedback. **Link only** — same
+rule as PrimeLessons / FLL Tutorials: never copy, mirror, rehost, or reproduce
+their PDF content into this app.
+
+- **`baby-sharks-fll-coding`** — the season-relevant one, SPIKE Prime word blocks.
+  It is the **primary** resource for **Build & Programming**: `BabySharksCourse.jsx`
+  renders it as a collapsed `<details>` block above the BP items, with the full
+  lesson index (`BABY_SHARKS_LESSON_INDEX` in `resources.js`) so a student can jump
+  straight to the lesson they need instead of scrolling the PDF. It also carries
+  `topics: ['driving', 'sensors', 'strategy']`, so it appears on the Resource
+  Library page too.
+- Three lesson-specific ids point at the **same** PDF but exist purely to name the
+  right lesson on a specific item's "Go deeper" line, via `secondaryResourceId`:
+  `baby-sharks-l2-driving` (BP3, BP4), `baby-sharks-l5-sensors` (BP7), and
+  `baby-sharks-l5-5-reliability` (BP5, BP9). Each sets `deeplinkLabel: 'Baby Sharks
+  lesson ↗'` so the detail sheet doesn't show the mechanisms-only "More training
+  designs ↗" text — see `deeplinkLabel` above.
+- **`baby-sharks-python`** and **`baby-sharks-engineering`** are optional, **not
+  FLL season content**. They carry `topics: []` so they never appear in a topic
+  band or read as part of the season skill path; they only surface in the Resource
+  Library's **"Extra Learning (Optional)"** section (`EXTRA_LEARNING_IDS` /
+  `extraLearningResources()`), clearly labeled as extra, not required.
+- `ATTRIBUTION` (shown on every page that already credits PrimeLessons / FLL
+  Tutorials) now also credits Baby Sharks / Team 33574 for all three courses. A
+  short feedback line — "Our teams are giving feedback on these courses" — with a
+  link to `BABY_SHARKS_FEEDBACK_URL` appears next to the featured course in Build
+  & Programming and again in the Extra Learning section (the Ripple Effect page
+  has the feedback form embedded on it; there is no separate form URL).
+- **Fallback / verify-link status:** all three PDF URLs were confirmed live and
+  current on the Baby Sharks Ripple Effect page
+  (`https://team33574.wixsite.com/baby-sharks/blank-2`) on 2026-08-14, but the Wix
+  "premium files" bucket they're hosted on (`09e0be48-...filesusr.com`) rejected
+  every automated fetch attempted from the build environment that day — curl (TLS
+  handshake failure), a headless fetch tool, and in-browser navigation all failed
+  to connect, while unrelated paths on `wixsite.com` / `wixstatic.com` succeeded.
+  That is consistent with datacenter-IP bot protection on that specific bucket, not
+  a dead file, so the links were **kept live rather than falling back** to the
+  Ripple Effect page. `// TODO verify-link` markers sit next to all three URLs in
+  `resources.js` — a human should confirm all three open from a normal browser on
+  the next link sweep. If one is later confirmed dead, fall back its `url` to the
+  Ripple Effect page above and update that resource's `blurb` accordingly; never
+  ship a dead link.
 
 ## Tour + session check-in
 
@@ -368,7 +416,7 @@ src/
   components/           Onboarding, RosterEditor, Hub, MissionCard, MissionDetail,
                         MediaList, Troubleshooter, Menu, MentorResources,
                         ResourceLibrary, TodayCheckin, SiteTour, DailyRhythm,
-                        BuildManual, Modal
+                        BuildManual, BabySharksCourse, Modal
   styles/               tokens.css (branding), app.css
 public/
   manifest.webmanifest, icons/   (PWA install assets)

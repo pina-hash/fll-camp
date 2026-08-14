@@ -266,6 +266,7 @@ export const BUILD_ITEMS = [
       'Drive straight by giving both motors the same speed for a set number of rotations — rotations repeat far better than time, because a low battery changes how far a second takes you. Convert rotations to centimetres once and write the number down.',
     prompt: 'How many rotations per centimetre on your robot? Record the number.',
     resourceId: 'moving-straight',
+    secondaryResourceId: 'baby-sharks-l2-driving',
   },
   {
     id: 'BP4',
@@ -276,6 +277,7 @@ export const BUILD_ITEMS = [
       'Turn by spinning the wheels opposite amounts for a set number of rotations, then fine-tune until you land near 90 degrees. If the robot overshoots, lower the turn speed — less momentum to carry it past the target.',
     prompt: 'What turn speed and rotation count gives you a clean 90 on this robot?',
     resourceId: 'accurate-turning',
+    secondaryResourceId: 'baby-sharks-l2-driving',
   },
   {
     id: 'BP5',
@@ -286,6 +288,7 @@ export const BUILD_ITEMS = [
       'A run can only be reliable if it starts the same way every time. Build a simple jig, or line the robot against the wall and the mat lines, so anyone on the team can place it identically under match pressure.',
     prompt: 'Describe your start setup so any team member can set it up the same way.',
     resourceId: 'reliability',
+    secondaryResourceId: 'baby-sharks-l5-5-reliability',
   },
   {
     id: 'BP6',
@@ -306,6 +309,7 @@ export const BUILD_ITEMS = [
       'A colour sensor lets the robot find a line and square up against it, resetting position before a tricky approach. It is the one sensor skill worth the time: a long run drifts, and squaring up on a line wipes that drift out.',
     prompt: 'Which run drifts the most? Where could you square up mid-run?',
     resourceId: 'line-follower',
+    secondaryResourceId: 'baby-sharks-l5-sensors',
   },
   {
     id: 'BP8',
@@ -326,6 +330,7 @@ export const BUILD_ITEMS = [
       'A mission you scored once is not a mission you own. Run it three times: if it lands three for three, it goes in the match plan. If it lands one for three, it is a practice item, not a competition item. Match plans built on lucky runs fall apart at the event.',
     prompt: 'Which missions are three-for-three right now? Which are not yet?',
     resourceId: 'reliability',
+    secondaryResourceId: 'baby-sharks-l5-5-reliability',
   },
 ];
 

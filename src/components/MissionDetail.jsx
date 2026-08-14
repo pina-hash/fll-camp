@@ -69,7 +69,7 @@ export default function MissionDetail({ item, note, onSetNote, onClose }) {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <span className="deeplink__go">{idx === 0 ? 'Go deeper ↗' : 'More training designs ↗'}</span>
+          <span className="deeplink__go">{link.deeplinkLabel ?? (idx === 0 ? 'Go deeper ↗' : 'Also see ↗')}</span>
           <span className="deeplink__label">
             {link.title} <span className="chip chip--source">{link.source}</span>
           </span>

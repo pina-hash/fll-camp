@@ -1,5 +1,6 @@
 import MissionCard from './MissionCard.jsx';
 import MediaList from './MediaList.jsx';
+import BabySharksCourse from './BabySharksCourse.jsx';
 import { CATEGORIES } from '../state/content.js';
 
 // The Skill Hub: seven open categories, nothing locked, nothing sequential. A
@@ -37,6 +38,8 @@ export default function Hub({ activeCategory, onSelectCategory, hasNote, onOpen 
           <span className="hub-group__tag">{category.tagline}</span>
         </h2>
         <p className="hub-group__intro">{category.intro}</p>
+
+        {category.id === 'build' && <BabySharksCourse />}
 
         {category.kind === 'media' ? (
           <MediaList entries={category.entries} />
