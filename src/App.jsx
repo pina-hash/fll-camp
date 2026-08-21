@@ -15,6 +15,8 @@ import TodayCheckin from './components/TodayCheckin.jsx';
 import SiteTour from './components/SiteTour.jsx';
 import BuildManual from './components/BuildManual.jsx';
 import DailyRhythm from './components/DailyRhythm.jsx';
+import BabySharksCourse from './components/BabySharksCourse.jsx';
+import SeasonDocuments from './components/SeasonDocuments.jsx';
 
 const MENTOR_ROUTE = '#/mentor-resources';
 const RESOURCES_ROUTE = '#/resources';
@@ -196,6 +198,14 @@ export default function App() {
           </span>
           <span className="build-bar__go" aria-hidden="true">→</span>
         </button>
+
+        {/* The two primary reference blocks, above the category tabs so neither
+            can be scrolled past. Both are .homeblock (black head, white body) so
+            they read as one tier apart from the gold action bars above and the
+            slim outlined bars below. The Baby Sharks course also still renders
+            inline in Build & Programming — SAME component, same data. */}
+        <BabySharksCourse variant="home" />
+        <SeasonDocuments />
 
         {showSetupBar && (
           <div className="setup-bar">

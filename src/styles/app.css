@@ -611,6 +611,214 @@ h3 {
   font-weight: 600;
 }
 
+/* ---- Home blocks: the two primary reference entry points ------------------ */
+/* Black head + white body — the brand's "black header, gold accent" rule. That
+   reads a clear tier above the slim outlined bars (.library-bar / .setup-bar)
+   and stays distinct from the solid-gold .build-bar action bar above them. */
+.homeblock {
+  margin-bottom: 1rem;
+  background: var(--card-bg);
+  border: 2px solid var(--black);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.homeblock__head {
+  padding: 0.7rem 1rem 0.75rem;
+  background: var(--black);
+}
+.homeblock__kicker {
+  margin: 0 0 0.1rem;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.homeblock__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.homeblock__body {
+  padding: 0.8rem 1rem 0.9rem;
+}
+/* Both home blocks have to clear the fold on a 375px-wide phone, so the deep
+   link inside one sits tighter than it does on an item detail sheet. */
+.homeblock .baby-sharks__blurb {
+  margin-bottom: 0.6rem;
+}
+.homeblock .deeplink {
+  margin-bottom: 0.7rem;
+}
+.deeplink--row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-height: var(--tap);
+}
+.homeblock__attr {
+  margin: 0.9rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.homeblock__attr a {
+  color: var(--green-dark);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Secondary fold inside a home block: the Tier 2 doc groups and the Baby Sharks
+   lesson index. Same <details> idiom as .baby-sharks, one step quieter. */
+.subfold {
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  overflow: hidden;
+}
+.subfold + .subfold {
+  margin-top: 0.5rem;
+}
+.subfold__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: var(--tap);
+  padding: 0.6rem 0.85rem;
+  list-style: none;
+  cursor: pointer;
+}
+.subfold__summary::-webkit-details-marker {
+  display: none;
+}
+.subfold__label {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--black);
+}
+.subfold__hint {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gold-deep);
+  background: var(--gold-pale);
+  border: 1px solid var(--gold-soft);
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+  white-space: nowrap;
+}
+.subfold[open] .subfold__summary {
+  border-bottom: 2px solid var(--line);
+}
+.subfold__body {
+  padding: 0.75rem 0.85rem 0.85rem;
+}
+
+/* ---- Season document rows (FIRST) ---------------------------------------- */
+.docs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.docs__groups {
+  margin-top: 0.9rem;
+}
+.docs__note {
+  margin: 0 0 0.6rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.docrow {
+  background: #fff;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.docrow__link {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: var(--tap);
+  padding: 0.6rem 0.8rem;
+  text-decoration: none;
+}
+.docrow__link:active {
+  transform: scale(0.995);
+}
+.docrow__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.docrow__title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--black);
+}
+.docrow__note {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+.docrow__kind {
+  flex: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--green-dark);
+  background: var(--green-tint);
+  border: 1px solid var(--green-mid);
+  border-radius: 999px;
+  padding: 0.12rem 0.5rem;
+}
+/* Challenge Updates. It carries rule corrections that OVERRIDE the rulebook and
+   FIRST revises it mid-season, so it gets an alert treatment, not just a spot in
+   the list — gold on gold-pale, the palette's existing "look at this" pairing. */
+.docrow--warn {
+  border-color: var(--gold-deep);
+  background: var(--gold-pale);
+}
+.docrow--warn .docrow__link {
+  align-items: flex-start;
+}
+.docrow__alert {
+  margin-right: 0.35rem;
+  color: var(--gold-deep);
+}
+.docrow__warn {
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--black);
+}
+.docrow--warn .docrow__kind {
+  color: var(--gold-deep);
+  background: #fff;
+  border-color: var(--gold-soft);
+}
+
 .app__footnote {
   margin: 1.4rem 0 0;
   text-align: center;

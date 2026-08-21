@@ -267,9 +267,10 @@ one-file change.
   ```
 
   Also exported: `TOPICS`, `MENTOR_LINK_IDS`, `EXTRA_LEARNING_IDS`, `ATTRIBUTION`,
-  `BABY_SHARKS_LESSON_INDEX`, `BABY_SHARKS_FEEDBACK_URL`, and helpers
-  `resourceById(id)`, `itemResources(item)`, `resourcesForTopic(topicKey)`,
-  `mentorLinks()`, `extraLearningResources()`.
+  `BABY_SHARKS_LESSON_INDEX`, `BABY_SHARKS_FEEDBACK_URL`, the season-document
+  exports (`SEASON_DOC_TIER1`, `SEASON_DOC_GROUPS`, `SEASON_DOCS_SOURCE_URL`,
+  `FIRST_ATTRIBUTION`), and helpers `resourceById(id)`, `itemResources(item)`,
+  `resourcesForTopic(topicKey)`, `mentorLinks()`, `extraLearningResources()`.
 - **Three consumers of `RESOURCES`, all by id:** an item's deep links via
   `itemResources(item)` (optional, up to two), the student **Resource Library**
   page, and the mentor page.
@@ -279,6 +280,13 @@ one-file change.
   multiple `topics`, no in-app item behind it) and it must never leak into
   `resourceById` / `resourcesForTopic` / `mentorLinks`. Also exported:
   `MEDIA_TOPICS`, `MEDIA_SERIES`, `mediaTopicLabel(key)`.
+- **The FIRST season documents are a third separate export in the same file** —
+  `SEASON_DOC_TIER1` / `SEASON_DOC_GROUPS`, backing the home-page season
+  documents block. Same "one file owns every external link" rule, same reason
+  they are not folded into `RESOURCES`: no in-app item sits behind them, they
+  carry no topics or audience, and they must never leak into `resourceById` /
+  `resourcesForTopic` / `mentorLinks`. See **Official FIRST season documents**
+  below for the scope restriction and the Challenge Updates rule.
 - **Resource Library** (hash route `#/resources`) — pure free-browse: no gating,
   no progress. Topics are banded section headers; under each, resource cards open
   the deep link in a new tab. Reachable from the menu and from a slim on-hub bar.
@@ -314,12 +322,21 @@ rule as PrimeLessons / FLL Tutorials: never copy, mirror, rehost, or reproduce
 their PDF content into this app.
 
 - **`baby-sharks-fll-coding`** — the season-relevant one, SPIKE Prime word blocks.
-  It is the **primary** resource for **Build & Programming**: `BabySharksCourse.jsx`
-  renders it as a collapsed `<details>` block above the BP items, with the full
-  lesson index (`BABY_SHARKS_LESSON_INDEX` in `resources.js`) so a student can jump
-  straight to the lesson they need instead of scrolling the PDF. It also carries
-  `topics: ['driving', 'sensors', 'strategy']`, so it appears on the Resource
-  Library page too.
+  `BabySharksCourse.jsx` renders it in **two places from ONE component and ONE
+  data source** — never fork it, and never add a second copy of the course data:
+  - `variant="home"` — a `.homeblock` at the top of the hub, above the tabs. The
+    course link is a one-row CTA that is tappable **without expanding anything**
+    (one tap from the home page); only the lesson index sits in a `<details>`.
+  - `variant="inline"` (the default) — the original collapsed `<details>` above
+    the Build & Programming items, where it is that category's **primary**
+    resource.
+
+  Both render the same shared lesson-index + feedback JSX, so they cannot drift.
+  The lesson index (`BABY_SHARKS_LESSON_INDEX` in `resources.js`) lets a student
+  jump straight to the lesson they need instead of scrolling the PDF. The course
+  also carries `topics: ['driving', 'sensors', 'strategy']`, so it appears on the
+  Resource Library page too — which is why its `blurb` is kept **location-neutral**
+  and must not name where the lesson index lives.
 - Three lesson-specific ids point at the **same** PDF but exist purely to name the
   right lesson on a specific item's "Go deeper" line, via `secondaryResourceId`:
   `baby-sharks-l2-driving` (BP3, BP4), `baby-sharks-l5-sensors` (BP7), and
@@ -371,6 +388,66 @@ their PDF content into this app.
   slim, dismissible on-hub **setup bar**. Stuck + Request a Mentor remain the only
   two sticky bottom buttons.
 
+## Home-page primary blocks
+
+Two **`.homeblock`** sections sit in `app__main` directly under the build bar and
+**above the category tabs**, so neither can be scrolled past: the Baby Sharks
+training course and the official FIRST season documents. They share one chrome —
+black head with a gold kicker, white body — which is deliberately a tier between
+the solid-gold `.build-bar` action bar above them and the slim outlined
+`.library-bar` / `.setup-bar` below. Order inside `app__main` is: build bar →
+Baby Sharks → season documents → setup bar → library bar → `Hub` (tabs).
+
+Both block heads clear the fold on a phone (measured at 394×854: heads end at
+417px and 739px) and on an iPad (768×1024: 374px and 660px). That budget is
+tight because the header + progress bar + build bar already consume ~395px, so
+**anything added above the tabs has to earn its height** — keep the collapsed
+height of these blocks down, and re-measure if you add a third.
+
+### Official FIRST season documents
+
+`SeasonDocuments.jsx`, fed by `SEASON_DOC_TIER1` / `SEASON_DOC_GROUPS` in
+`resources.js`. Every row is one tap straight to the file — never an
+intermediate landing page, never a "go to the FIRST website" step.
+
+- **Scope: Founders Edition, Grades 4–8 (Challenge) only.** Our four teams are
+  Founders Edition Challenge teams. Do **not** add FLL Explore or Future Edition
+  materials to this block anywhere.
+- **Link only.** Never download, mirror, rehost, or reproduce FIRST content into
+  this app — the same rule that governs PrimeLessons / FLL Tutorials / Baby
+  Sharks. (The one self-hosted PDF in the repo is the competition bot build
+  manual, which is not a FIRST publication.)
+- **Data source:** `https://firstinspires.blob.core.windows.net/fll/challenge/2026-27/…`,
+  the FIRST blob storage the season materials page serves from. The index page
+  (`SEASON_DOCS_SOURCE_URL`,
+  `firstinspires.org/resources/library/fll/season-materials`) appears **only in
+  the block's footer** as a credit — no document routes through it. Doc shape is
+  `{ id, title, url, kind, note?, warn? }` where `kind` is `'pdf' | 'web' |
+  'video'`.
+- **Tier 1** (always visible, no expand): Robot Game Rulebook, the interactive
+  rulebook, Challenge Updates, Engineering Notebook. **Tier 2** is six
+  per-heading `<details>` groups: rules and participation, judging and awards,
+  field and table setup, mission model building instructions (Element Overview,
+  Prepack Overview, and Models 1–13 — generated from the URL pattern by
+  `MODEL_BOOKS` so the two-digit zero padding can't drift), scoring, and videos.
+- **Challenge Updates gets an alert treatment, not just a list position**
+  (`warn` on the doc → `.docrow--warn`, gold on gold-pale). It carries rule
+  **corrections that override the Rulebook**, and **FIRST revises it during the
+  season** — a team running a mission by a superseded rule loses the points, and
+  it is the single most-missed document in FLL. The copy tells students to
+  **re-check it before every tournament**, and whoever sweeps links should also
+  re-read the file itself and update the "last updated" `note` (currently
+  8/04/26). Keep that framing if you touch this row.
+- `FIRST_ATTRIBUTION` credits these as official FIRST LEGO League Challenge
+  publications, alongside the existing `ATTRIBUTION` line for PrimeLessons / FLL
+  Tutorials / Baby Sharks.
+- **Link policy:** all 36 URLs were fetched on 2026-08-20 — every PDF returned
+  `application/pdf` with a `%PDF` header. Unlike the Baby Sharks Wix bucket,
+  `firstinspires.blob.core.windows.net` does **not** block automated fetching,
+  so a failure there is a **real dead link**. On a dead link, add a
+  `// TODO verify-link` naming the document and point **that one entry** at
+  `SEASON_DOCS_SOURCE_URL` — never collapse the whole block onto the index page.
+
 ## The build manual (the season's action item)
 
 Building the competition bot is what teams are doing right now, so it gets the
@@ -408,14 +485,15 @@ src/
     content.js          the seven CATEGORIES (+ ITEM_CATEGORIES) + Robot / Core
                         Values / Project / Build / Mechanisms items
     resources.js        SINGLE source of truth for external links: RESOURCES
-                        (per-item + library) and MEDIA_ITEMS (media category)
+                        (per-item + library), MEDIA_ITEMS (media category), and
+                        SEASON_DOC_TIER1 / SEASON_DOC_GROUPS (FIRST season docs)
     troubleshooter.js   "Stuck?" content
     state.js            SINGLE state module (only localStorage I/O + all mutators)
     useTeamState.js     React hook over state.js
   components/           Onboarding, RosterEditor, Hub, MissionCard, MissionDetail,
                         MediaList, Troubleshooter, Menu, MentorResources,
                         ResourceLibrary, TodayCheckin, SiteTour, DailyRhythm,
-                        BuildManual, BabySharksCourse, Modal
+                        BuildManual, BabySharksCourse, SeasonDocuments, Modal
   styles/               tokens.css (branding), app.css
 public/
   manifest.webmanifest, icons/   (PWA install assets)

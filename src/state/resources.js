@@ -228,8 +228,10 @@ export const RESOURCES = {
   'baby-sharks-fll-coding': {
     id: 'baby-sharks-fll-coding',
     title: 'Baby Sharks FLL Coding Course',
+    // Kept location-neutral: the lesson index now renders in two places (the hub
+    // home page and Build & Programming), so the blurb must not name one of them.
     blurb:
-      'Free SPIKE Prime word-block course from FTC Team 33574 — beginner to advanced, with mini challenges throughout. See the lesson index in Build & Programming to jump straight to what you need.',
+      'Free SPIKE Prime word-block course from FTC Team 33574 — beginner to advanced, with mini challenges throughout.',
     source: 'Baby Sharks (Team 33574)',
     url: BABY_SHARKS_FLL_CODING_URL,
     topics: ['driving', 'sensors', 'strategy'],
@@ -501,6 +503,250 @@ export const MEDIA_ITEMS = [
 export function mediaTopicLabel(key) {
   return MEDIA_TOPICS.find((t) => t.key === key)?.label ?? key;
 }
+
+// ===========================================================================
+// OFFICIAL FIRST SEASON DOCUMENTS — BIOGLOW 2026-27.
+//
+// The real FIRST publications for this season, surfaced as a primary block on
+// the home page (SeasonDocuments.jsx). Scope is deliberately narrow: FOUNDERS
+// EDITION, GRADES 4-8 (CHALLENGE) only. Our four teams are Founders Edition
+// Challenge teams — do NOT add FLL Explore or Future Edition materials here.
+//
+// LINK ONLY. Never download, mirror, rehost, or reproduce FIRST content into
+// this app — same rule as PrimeLessons / FLL Tutorials / Baby Sharks. (The one
+// self-hosted PDF in this repo is the competition bot build manual, which is
+// not a FIRST publication; see LOCAL_ASSETS.)
+//
+// Every URL below was fetched on 2026-08-20: all resolved, each PDF served with
+// `application/pdf` and a `%PDF` header. The blob.core.windows.net host does
+// NOT block automated fetching (unlike the Baby Sharks Wix bucket above), so a
+// failure there is a REAL dead link. On a dead link, add a
+// `// TODO verify-link` naming the document and point that ONE entry at
+// SEASON_DOCS_SOURCE_URL — never collapse the whole block onto the index page.
+//
+// Doc shape: { id, title, url, kind, note?, warn? }
+//   kind  'pdf' | 'web' | 'video'  — drives the small badge on the row
+//   note  optional line under the title
+//   warn  Tier 1 only: renders the row in the alert treatment
+// ===========================================================================
+
+const FIRST_2026 = 'https://firstinspires.blob.core.windows.net/fll/challenge/2026-27';
+
+/** The FIRST season materials index. Footer of the season documents block only —
+ *  every document above it is a direct link, so nobody has to go through here. */
+export const SEASON_DOCS_SOURCE_URL =
+  'https://www.firstinspires.org/resources/library/fll/season-materials';
+
+/** Tier 1: always visible on the home page, no expand. The four documents a
+ *  team actually needs in hand during the season. */
+export const SEASON_DOC_TIER1 = [
+  {
+    id: 'sd-rgr',
+    title: 'Robot Game Rulebook',
+    note: 'The rules of the robot game, mission by mission.',
+    url: `${FIRST_2026}/fll-challenge-bioglow-rgr.pdf`,
+    kind: 'pdf',
+  },
+  {
+    id: 'sd-rgr-interactive',
+    title: 'Robot Game Rulebook — interactive version',
+    note: 'The same rulebook as a browsable website, not a PDF.',
+    url: `${FIRST_2026}/interactive-rgr/index.html`,
+    kind: 'web',
+  },
+  {
+    id: 'sd-updates',
+    title: 'Challenge Updates',
+    note: 'Last updated 8/04/26.',
+    url: `${FIRST_2026}/fll-challenge-bioglow-updates.pdf`,
+    kind: 'pdf',
+    // The single most-missed document in FLL: it carries rule CORRECTIONS that
+    // override the Rulebook, and FIRST revises it during the season. A team that
+    // runs a mission by a superseded rule loses the points. Hence the alert
+    // treatment — list position alone is not enough.
+    warn:
+      'Rule corrections that override the Rulebook. FIRST changes this file ' +
+      'during the season — re-check it before every tournament.',
+  },
+  {
+    id: 'sd-en',
+    title: 'Engineering Notebook',
+    note: 'Where the team records the Innovation Project and robot design.',
+    url: `${FIRST_2026}/fll-challenge-bioglow-en.pdf`,
+    kind: 'pdf',
+  },
+];
+
+/** Model building instruction books 1-13. Generated from the URL pattern so the
+ *  two-digit zero padding can never drift: ...-bi-enus-book-01.pdf ... -13.pdf */
+const MODEL_BOOKS = Array.from({ length: 13 }, (_, i) => {
+  const n = String(i + 1).padStart(2, '0');
+  return {
+    id: `sd-bi-book-${n}`,
+    title: `Model ${i + 1}`,
+    url: `${FIRST_2026}/fll-challenge-bioglow-bi-enus-book-${n}.pdf`,
+    kind: 'pdf',
+  };
+});
+
+/** Tier 2: everything else, grouped and collapsed under its heading. */
+export const SEASON_DOC_GROUPS = [
+  {
+    id: 'sdg-rules',
+    label: 'Rules and participation',
+    docs: [
+      {
+        id: 'sd-participation',
+        title: 'Participation Rules',
+        url: `${FIRST_2026}/fll-challenge-bioglow-participation-rules.pdf`,
+        kind: 'pdf',
+      },
+      {
+        id: 'sd-season-overview',
+        title: 'Season Overview',
+        url: `${FIRST_2026}/fll-challenge-bioglow-season-overview.pdf`,
+        kind: 'pdf',
+      },
+      {
+        id: 'sd-tmg',
+        title: 'Team Meeting Guide',
+        url: `${FIRST_2026}/fll-challenge-bioglow-tmg.pdf`,
+        kind: 'pdf',
+      },
+    ],
+  },
+  {
+    id: 'sdg-judging',
+    label: 'Judging and awards',
+    docs: [
+      {
+        id: 'sd-rubrics-color',
+        title: 'Rubrics — color',
+        url: `${FIRST_2026}/fll-challenge-bioglow-rubrics-color.pdf`,
+        kind: 'pdf',
+      },
+      {
+        id: 'sd-rubrics-grayscale',
+        title: 'Rubrics — grayscale, for printing',
+        url: `${FIRST_2026}/fll-challenge-bioglow-rubrics-grayscale.pdf`,
+        kind: 'pdf',
+      },
+      {
+        id: 'sd-judging-flowchart',
+        title: 'Judging Session Flow Chart',
+        url: `${FIRST_2026}/fll-challenge-bioglow-judging-session-flowchart.pdf`,
+        kind: 'pdf',
+      },
+      {
+        id: 'sd-awards',
+        title: 'Awards',
+        url: `${FIRST_2026}/fll-challenge-bioglow-awards.pdf`,
+        kind: 'pdf',
+      },
+    ],
+  },
+  {
+    id: 'sdg-field',
+    label: 'Field and table setup',
+    docs: [
+      {
+        id: 'sd-field-setup',
+        title: 'Field Set-Up Reference Guide',
+        url: `${FIRST_2026}/fll-challenge-bioglow-field-setup-reference-guide.pdf`,
+        kind: 'pdf',
+      },
+      {
+        id: 'sd-table-building',
+        title: 'Robot Game Table Building Instructions',
+        url: `${FIRST_2026}/fll-challenge-bioglow-table-building-instructions.pdf`,
+        kind: 'pdf',
+      },
+      {
+        id: 'sd-wireframe',
+        title: 'Wireframe and Grid',
+        url: `${FIRST_2026}/fll-challenge-bioglow-wireframe-grid.pdf`,
+        kind: 'pdf',
+      },
+    ],
+  },
+  {
+    id: 'sdg-models',
+    label: 'Mission model building instructions (English)',
+    note:
+      'Sort the LEGO bags by the bag number printed on them first, then open one ' +
+      'model at a time — mixing elements between models is what costs a team hours.',
+    docs: [
+      {
+        id: 'sd-bi-eop',
+        title: 'Element Overview',
+        url: `${FIRST_2026}/fll-challenge-bioglow-bi-enus-eop.pdf`,
+        kind: 'pdf',
+      },
+      {
+        id: 'sd-bi-prepack',
+        title: 'Prepack Overview',
+        url: `${FIRST_2026}/fll-challenge-bioglow-bi-enus-prepack.pdf`,
+        kind: 'pdf',
+      },
+      ...MODEL_BOOKS,
+    ],
+  },
+  {
+    id: 'sdg-scoring',
+    label: 'Scoring',
+    docs: [
+      {
+        id: 'sd-software-scoresheet',
+        title: 'Robot Game Software Scoresheet',
+        url: `${FIRST_2026}/fll-challenge-bioglow-software-scoresheet.pdf`,
+        kind: 'pdf',
+      },
+      {
+        id: 'sd-classpack-scoresheet',
+        title: 'Class Pack Scoresheet',
+        url: `${FIRST_2026}/fll-challenge-bioglow-classpack-scoresheet.pdf`,
+        kind: 'pdf',
+      },
+      {
+        id: 'sd-score-calculator',
+        title: 'Online Score Calculator',
+        url: 'https://eventhub.firstinspires.org/scoresheet',
+        kind: 'web',
+      },
+    ],
+  },
+  {
+    id: 'sdg-videos',
+    label: 'Videos',
+    docs: [
+      {
+        id: 'sd-vid-missions',
+        title: 'Robot Game Missions Video',
+        url: 'https://youtu.be/uhZZ8O1StiQ',
+        kind: 'video',
+      },
+      {
+        id: 'sd-vid-field-setup',
+        title: 'Field Set-Up Video',
+        url: 'https://youtu.be/wDan0826cn0',
+        kind: 'video',
+      },
+      {
+        id: 'sd-vid-event',
+        title: 'Preparing for your Event Video',
+        url: 'https://youtu.be/9TMFtLKYT6o',
+        kind: 'video',
+      },
+    ],
+  },
+];
+
+/** Credit line for the season documents block — the FIRST equivalent of
+ *  ATTRIBUTION, kept separate because it names a different scope and publisher. */
+export const FIRST_ATTRIBUTION =
+  'Official FIRST LEGO League Challenge publications for the BIOGLOW 2026-27 ' +
+  'season (Founders Edition, Grades 4-8), published by FIRST. Linked directly, ' +
+  'never copied.';
 
 export const ATTRIBUTION =
   'Skill lessons by PrimeLessons.org (CC-BY-NC-SA). Mission tutorials by FLL Tutorials. ' +
