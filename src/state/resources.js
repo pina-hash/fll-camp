@@ -38,13 +38,14 @@ const PRIME = 'https://primelessons.org/en/ProgrammingLessons';
 // out, same as PrimeLessons / FLL Tutorials.
 //
 // The PDFs are hosted on a Wix "premium files" bucket. All three were fetched
-// directly and returned their full expected contents (FLL Coding Course, Intro
-// to Python, Basic Engineering) — verified live 2026-08-14. That bucket's
-// TLS/CDN does reject automated fetches from some build environments (curl,
-// headless fetch, and browser navigation all failed to connect there, while
-// unrelated wixsite.com/wixstatic.com paths on the same host succeeded), which
-// is bot protection, not a dead file — don't mistake a failed automated check
-// on these URLs for a dead link.
+// directly and returned their full expected contents (FLL Coding Course 52pp,
+// Intro to Python 37pp, Basic Engineering 67pp) — re-verified 2026-08-20, when
+// their embedded outlines were read to build the lesson indexes below.
+//
+// That bucket's bot protection rejects a DEFAULT curl/headless user agent, but
+// serves normally to a browser one — `curl -A '<browser UA>'` returns all three
+// in full. So a failed automated check here is a user-agent problem, not a dead
+// file: retry with a browser UA before ever concluding a link is dead.
 const BABY_SHARKS_RIPPLE_EFFECT = 'https://team33574.wixsite.com/baby-sharks/blank-2';
 const BABY_SHARKS_FLL_CODING_URL =
   'https://09e0be48-dba0-4a4d-93a7-079640fadf32.filesusr.com/ugd/e1c871_fc3d87da85384e85bbffaee4a890b2ce.pdf';
@@ -242,7 +243,8 @@ export const RESOURCES = {
     title: 'Baby Sharks: L2 Basic Movement + L9 Gyro Straight',
     blurb: 'Driving and turning, from the Baby Sharks FLL Coding Course.',
     source: 'Baby Sharks (Team 33574)',
-    url: BABY_SHARKS_FLL_CODING_URL,
+    // #page= lands on L2 Basic movement; see BABY_SHARKS_LESSON_INDEX.
+    url: `${BABY_SHARKS_FLL_CODING_URL}#page=9`,
     deeplinkLabel: 'Baby Sharks lesson ↗',
     topics: [],
     audience: 'student',
@@ -252,7 +254,8 @@ export const RESOURCES = {
     title: 'Baby Sharks: L5 Sensors + L9 Line Following',
     blurb: 'Sensors and lines, from the Baby Sharks FLL Coding Course.',
     source: 'Baby Sharks (Team 33574)',
-    url: BABY_SHARKS_FLL_CODING_URL,
+    // #page= lands on L5 Sensors; see BABY_SHARKS_LESSON_INDEX.
+    url: `${BABY_SHARKS_FLL_CODING_URL}#page=15`,
     deeplinkLabel: 'Baby Sharks lesson ↗',
     topics: [],
     audience: 'student',
@@ -262,7 +265,8 @@ export const RESOURCES = {
     title: 'Baby Sharks: L5.5 Robot Consistency + Troubleshooting',
     blurb: 'Consistency and reliability, from the Baby Sharks FLL Coding Course.',
     source: 'Baby Sharks (Team 33574)',
-    url: BABY_SHARKS_FLL_CODING_URL,
+    // #page= lands on L5.5 Robot consistency; see BABY_SHARKS_LESSON_INDEX.
+    url: `${BABY_SHARKS_FLL_CODING_URL}#page=19`,
     deeplinkLabel: 'Baby Sharks lesson ↗',
     topics: [],
     audience: 'student',
@@ -313,28 +317,109 @@ export const EXTRA_LEARNING_IDS = ['baby-sharks-python', 'baby-sharks-engineerin
 /** The Baby Sharks FLL Coding Course's lesson index, in course order — lets a
  *  student jump straight to the lesson they need instead of scrolling the PDF.
  *  `num` matches the course's own lesson numbering (including the two half
- *  lessons, L5.5 and L8.5). */
+ *  lessons, L5.5 and L8.5).
+ *
+ *  `page` is the 1-based PDF page the lesson starts on, read from the PDF's own
+ *  embedded outline (not guessed). It drives two things: the `#page=N` fragment
+ *  on the row's link, and the visible "p. N" marker. Both matter — Chrome and
+ *  most desktop viewers honour `#page=`, but iOS Safari's PDF viewer commonly
+ *  ignores it and opens at page 1, so the printed page number is what makes the
+ *  jump reliable on an iPad. If a course PDF is ever revised, re-read the
+ *  outline and update these numbers, or the rows point at the wrong lessons. */
 export const BABY_SHARKS_LESSON_INDEX = [
-  { num: 'L1', title: 'Getting started with SPIKE Prime', note: 'App setup, hub connection, block types' },
-  { num: 'L2', title: 'Basic movement', note: 'Drive, two turning methods, rotations vs degrees' },
-  { num: 'L3', title: 'Loops' },
-  { num: 'L4', title: 'Conditionals' },
-  { num: 'L5', title: 'Sensors', note: 'Color, distance, touch, gyro' },
-  { num: 'L5.5', title: 'Robot consistency', note: 'Drift causes, hub placement' },
-  { num: 'L6', title: 'Variables' },
-  { num: 'L7', title: 'Operators' },
-  { num: 'L8', title: 'MyBlocks', note: 'Custom blocks' },
-  { num: 'L8.5', title: 'Self-adjusting code' },
+  { num: 'L1', title: 'Getting started with SPIKE Prime', page: 4, note: 'App setup, hub connection, block types' },
+  { num: 'L2', title: 'Basic movement', page: 9, note: 'Drive, two turning methods, rotations vs degrees' },
+  { num: 'L3', title: 'Loops', page: 12 },
+  { num: 'L4', title: 'Conditionals', page: 13 },
+  { num: 'L5', title: 'Sensors', page: 15, note: 'Color, distance, touch, gyro' },
+  { num: 'L5.5', title: 'Robot consistency', page: 19, note: 'Drift causes, hub placement' },
+  { num: 'L6', title: 'Variables', page: 19 },
+  { num: 'L7', title: 'Operators', page: 22 },
+  { num: 'L8', title: 'MyBlocks', page: 24, note: 'Custom blocks' },
+  { num: 'L8.5', title: 'Self-adjusting code', page: 26 },
   {
     num: 'L9',
     title: 'Gyro turn, line following, gyro straight',
-    note: 'The three core FLL codes — each with its own troubleshooting page',
+    page: 27,
+    note: 'The three core FLL codes — troubleshooting pages at 28, 31 and 34',
   },
-  { num: 'L10', title: 'Lights and sounds' },
-  { num: 'L11', title: 'Final project', note: 'Autonomous obstacle avoidance, built in six steps' },
-  { num: 'L12', title: 'Conclusion' },
-  { num: '★', title: 'Printable summary sheet', note: 'One-page cheat sheet at the back of the course' },
+  { num: 'L10', title: 'Lights and sounds', page: 39 },
+  { num: 'L11', title: 'Final project', page: 41, note: 'Autonomous obstacle avoidance, built in six steps' },
+  { num: 'L12', title: 'Conclusion', page: 43 },
+  { num: '★', title: 'Printable summary sheet', page: 51, note: 'One-page cheat sheet at the back of the course' },
 ];
+
+/** Intro to Python lesson index. OPTIONAL, not FLL season content. */
+export const BABY_SHARKS_PYTHON_INDEX = [
+  { num: 'L1', title: 'What is Programming?', page: 4, note: 'Algorithms, syntax, running Python in the browser' },
+  { num: 'L2', title: 'Variables and Data Types', page: 6 },
+  { num: 'L3', title: 'String Methods', page: 9 },
+  { num: 'L4', title: 'Input and Output', page: 11 },
+  { num: 'L5', title: 'Operators and Expressions', page: 13 },
+  { num: 'L6', title: 'Conditionals', page: 16 },
+  { num: 'L7', title: 'Loops', page: 18 },
+  { num: 'L8', title: 'Lists', page: 21 },
+  { num: 'L9', title: 'Dictionaries', page: 23 },
+  { num: 'L10', title: 'Functions', page: 25 },
+  { num: 'L11', title: 'Try/Except', page: 27 },
+  { num: 'L12', title: 'Combining Everything', page: 30 },
+  { num: 'L13', title: 'Final Project', page: 32 },
+  { num: 'L14', title: 'Conclusion', page: 34 },
+];
+
+/** Basic Engineering section index. OPTIONAL, not FLL season content. `num` is
+ *  the course's own chapter-section numbering, not lesson numbers. */
+export const BABY_SHARKS_ENGINEERING_INDEX = [
+  { num: '1-1', title: 'The Engineering and Design Process', page: 4 },
+  { num: '1-2', title: 'EDP activities and practice', page: 6 },
+  { num: '2-1', title: 'What Is a Robot?', page: 8 },
+  { num: '3-1', title: 'The 5 subsystems of a robot', page: 10 },
+  { num: '3-2', title: 'Structure: the skeleton', page: 15 },
+  { num: '3-3', title: 'Actuators: the muscles', page: 18 },
+  { num: '3-4', title: 'Sensors: the senses', page: 21 },
+  { num: '3-5', title: 'Control system: the brain', page: 23 },
+  { num: '3-6', title: 'Power: the energy source', page: 24 },
+  { num: '3-7', title: 'How the subsystems work together', page: 27 },
+  { num: '4-1', title: 'Gears and torque', page: 29 },
+  { num: '5-1', title: 'Linear vs rotational movement', page: 32 },
+  { num: '5-2', title: 'Simple machines in robotics', page: 34 },
+  { num: '6-1', title: 'Extenders', page: 38 },
+  { num: '6-2', title: 'Introduction to rotation', page: 40 },
+  { num: '7-1', title: 'Logic and pseudocode', page: 42 },
+  { num: '8-1', title: 'Sensor logic challenge', page: 48 },
+  { num: '9-1', title: 'Final robotics challenge', page: 53 },
+  { num: '10-1', title: 'Thinking like an engineer', page: 58 },
+  { num: '★', title: 'Glossary', page: 61 },
+];
+
+/** All three Baby Sharks courses, in home-block display order. The FLL coding
+ *  course is the season one; the other two are OPTIONAL and must stay visibly
+ *  labelled as not-season content wherever they appear (see the Extra Learning
+ *  group on the Resource Library page, which they also still feed).
+ *
+ *  `badge` is the kid-facing label on the course card. Resolve this list with
+ *  babySharksCourses() so the resource itself is never duplicated here. */
+export const BABY_SHARKS_COURSES = [
+  { id: 'baby-sharks-fll-coding', badge: 'Season course', index: BABY_SHARKS_LESSON_INDEX },
+  { id: 'baby-sharks-python', badge: 'Optional — not FLL', index: BABY_SHARKS_PYTHON_INDEX },
+  { id: 'baby-sharks-engineering', badge: 'Optional — not FLL', index: BABY_SHARKS_ENGINEERING_INDEX },
+];
+
+/** The three Baby Sharks courses resolved to { ...resource, badge, index }.
+ *  One data source: the link and blurb still come from RESOURCES by id. */
+export function babySharksCourses() {
+  return BABY_SHARKS_COURSES.map((c) => {
+    const res = resourceById(c.id);
+    return res ? { ...res, badge: c.badge, index: c.index } : null;
+  }).filter(Boolean);
+}
+
+/** A course PDF opened at a specific page. Viewers that honour the `#page=`
+ *  fragment jump straight there; the rest open at page 1, which is why every
+ *  row also prints its page number. */
+export function coursePageUrl(url, page) {
+  return page ? `${url}#page=${page}` : url;
+}
 
 // ===========================================================================
 // MEDIA LIBRARY — the "Video & Resource Library" hub category.
@@ -744,9 +829,8 @@ export const SEASON_DOC_GROUPS = [
 /** Credit line for the season documents block — the FIRST equivalent of
  *  ATTRIBUTION, kept separate because it names a different scope and publisher. */
 export const FIRST_ATTRIBUTION =
-  'Official FIRST LEGO League Challenge publications for the BIOGLOW 2026-27 ' +
-  'season (Founders Edition, Grades 4-8), published by FIRST. Linked directly, ' +
-  'never copied.';
+  'Official FIRST LEGO League publications (Founders Edition, Grades 4-8 ' +
+  'Challenge). Linked directly, never copied.';
 
 export const ATTRIBUTION =
   'Skill lessons by PrimeLessons.org (CC-BY-NC-SA). Mission tutorials by FLL Tutorials. ' +

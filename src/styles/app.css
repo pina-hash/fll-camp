@@ -676,6 +676,82 @@ h3 {
   white-space: nowrap;
 }
 
+/* ---- Course card (one per Baby Sharks course, home block) ----------------- */
+.course + .course {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 2px solid var(--line);
+}
+.course__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+.course__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--black);
+}
+/* Clamped: these blurbs were written for the Resource Library page and run to
+   three sentences. On the home page the full text costs more height than it is
+   worth — the course PDF is one tap away. */
+.course__blurb {
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+/* The two non-FLL courses. Deliberately grey, not green or gold: they must never
+   read as part of the season skill path. */
+.chip--optional {
+  flex: none;
+  color: var(--ink-soft);
+  background: var(--page-bg);
+  border: 1px solid var(--line);
+}
+
+/* ---- Lesson index row: a real jump into the PDF at that lesson ------------ */
+.lessonrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-height: var(--tap);
+  text-decoration: none;
+}
+.lessonrow:active {
+  transform: scale(0.995);
+}
+.lessonrow .resrow__item {
+  flex: 1;
+  margin-bottom: 0;
+  min-width: 0;
+}
+/* Printed page number — the fallback that makes "jump to a lesson" true even in
+   viewers that ignore the #page= fragment (notably iOS Safari). */
+.lessonrow__page {
+  flex: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.72rem;
+  color: var(--green-dark);
+  background: var(--green-tint);
+  border: 1px solid var(--green-mid);
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  white-space: nowrap;
+}
+
 /* Secondary fold inside a home block: the Tier 2 doc groups and the Baby Sharks
    lesson index. Same <details> idiom as .baby-sharks, one step quieter. */
 .subfold {

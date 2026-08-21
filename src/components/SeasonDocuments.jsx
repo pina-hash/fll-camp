@@ -50,24 +50,35 @@ export default function SeasonDocuments() {
           ))}
         </ul>
 
-        <div className="docs__groups">
-          {SEASON_DOC_GROUPS.map((group) => (
-            <details className="subfold" key={group.id}>
-              <summary className="subfold__summary">
-                <span className="subfold__label">{group.label}</span>
-                <span className="subfold__hint">{group.docs.length}</span>
-              </summary>
-              <div className="subfold__body">
-                {group.note && <p className="docs__note">{group.note}</p>}
-                <ul className="docs">
-                  {group.docs.map((doc) => (
-                    <DocRow key={doc.id} doc={doc} />
-                  ))}
-                </ul>
-              </div>
-            </details>
-          ))}
-        </div>
+        {/* Tier 2 behind ONE outer fold. Six always-visible group headers cost
+            ~300px of home page, and this block sits above the build bar and the
+            training courses — everything below it pays for that height. */}
+        <details className="subfold docs__groups">
+          <summary className="subfold__summary">
+            <span className="subfold__label">More season documents</span>
+            <span className="subfold__hint">
+              {SEASON_DOC_GROUPS.reduce((n, g) => n + g.docs.length, 0)}
+            </span>
+          </summary>
+          <div className="subfold__body">
+            {SEASON_DOC_GROUPS.map((group) => (
+              <details className="subfold" key={group.id}>
+                <summary className="subfold__summary">
+                  <span className="subfold__label">{group.label}</span>
+                  <span className="subfold__hint">{group.docs.length}</span>
+                </summary>
+                <div className="subfold__body">
+                  {group.note && <p className="docs__note">{group.note}</p>}
+                  <ul className="docs">
+                    {group.docs.map((doc) => (
+                      <DocRow key={doc.id} doc={doc} />
+                    ))}
+                  </ul>
+                </div>
+              </details>
+            ))}
+          </div>
+        </details>
 
         <p className="homeblock__attr">
           {FIRST_ATTRIBUTION}{' '}

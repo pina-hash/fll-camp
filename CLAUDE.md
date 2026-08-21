@@ -267,7 +267,9 @@ one-file change.
   ```
 
   Also exported: `TOPICS`, `MENTOR_LINK_IDS`, `EXTRA_LEARNING_IDS`, `ATTRIBUTION`,
-  `BABY_SHARKS_LESSON_INDEX`, `BABY_SHARKS_FEEDBACK_URL`, the season-document
+  `BABY_SHARKS_LESSON_INDEX` / `BABY_SHARKS_PYTHON_INDEX` /
+  `BABY_SHARKS_ENGINEERING_INDEX` / `BABY_SHARKS_COURSES` / `babySharksCourses()` /
+  `coursePageUrl()`, `BABY_SHARKS_FEEDBACK_URL`, the season-document
   exports (`SEASON_DOC_TIER1`, `SEASON_DOC_GROUPS`, `SEASON_DOCS_SOURCE_URL`,
   `FIRST_ATTRIBUTION`), and helpers `resourceById(id)`, `itemResources(item)`,
   `resourcesForTopic(topicKey)`, `mentorLinks()`, `extraLearningResources()`.
@@ -321,52 +323,66 @@ committed our teams to using them and is giving feedback. **Link only** — same
 rule as PrimeLessons / FLL Tutorials: never copy, mirror, rehost, or reproduce
 their PDF content into this app.
 
-- **`baby-sharks-fll-coding`** — the season-relevant one, SPIKE Prime word blocks.
-  `BabySharksCourse.jsx` renders it in **two places from ONE component and ONE
-  data source** — never fork it, and never add a second copy of the course data:
-  - `variant="home"` — a `.homeblock` at the top of the hub, above the tabs. The
-    course link is a one-row CTA that is tappable **without expanding anything**
-    (one tap from the home page); only the lesson index sits in a `<details>`.
-  - `variant="inline"` (the default) — the original collapsed `<details>` above
-    the Build & Programming items, where it is that category's **primary**
-    resource.
+- **All three courses render on the home page**, from ONE component and ONE data
+  source — never fork it, and never add a second copy of the course data.
+  `BABY_SHARKS_COURSES` (resources.js) lists the three by resource id with a
+  `badge` and a lesson index; `babySharksCourses()` resolves each to its
+  `RESOURCES` entry, so the URL, title, and blurb still live in exactly one place.
+  `BabySharksCourse.jsx` renders in two places:
+  - `variant="home"` — a `.homeblock` at the top of the hub. **All three
+    courses**, each a `.course` card: title + `badge`, a clamped blurb, a one-row
+    CTA that opens the PDF **without expanding anything** (one tap from the home
+    page), and a "Jump to a lesson" `<details>` holding that course's index.
+  - `variant="inline"` (the default) — the collapsed `<details>` above the Build &
+    Programming items. **Season coding course ONLY**: the other two are not FLL
+    content and have no business in that tab.
 
-  Both render the same shared lesson-index + feedback JSX, so they cannot drift.
-  The lesson index (`BABY_SHARKS_LESSON_INDEX` in `resources.js`) lets a student
-  jump straight to the lesson they need instead of scrolling the PDF. The course
-  also carries `topics: ['driving', 'sensors', 'strategy']`, so it appears on the
-  Resource Library page too — which is why its `blurb` is kept **location-neutral**
-  and must not name where the lesson index lives.
+  Both variants share the same lesson-row and feedback JSX, so they cannot drift.
+- **Lesson rows are real page jumps.** Every index entry carries a `page`, read
+  from **the PDF's own embedded outline** (via pypdf, not guessed), and the row is
+  an `<a>` to `coursePageUrl(url, page)` → `…pdf#page=N`. Because iOS Safari's PDF
+  viewer commonly **ignores** `#page=` and opens at page 1, each row **also prints
+  its page number** (`.lessonrow__page`) — that visible number is what makes the
+  jump work on an iPad, so do not remove it. The three indexes are
+  `BABY_SHARKS_LESSON_INDEX` (15 rows), `BABY_SHARKS_PYTHON_INDEX` (14) and
+  `BABY_SHARKS_ENGINEERING_INDEX` (20). **If a course PDF is revised, re-read its
+  outline and update these page numbers** or every row points at the wrong lesson.
+- `baby-sharks-fll-coding` carries `topics: ['driving', 'sensors', 'strategy']`,
+  so it appears on the Resource Library page too — which is why its `blurb` is
+  kept **location-neutral** and must not name where the lesson index lives.
 - Three lesson-specific ids point at the **same** PDF but exist purely to name the
   right lesson on a specific item's "Go deeper" line, via `secondaryResourceId`:
-  `baby-sharks-l2-driving` (BP3, BP4), `baby-sharks-l5-sensors` (BP7), and
-  `baby-sharks-l5-5-reliability` (BP5, BP9). Each sets `deeplinkLabel: 'Baby Sharks
-  lesson ↗'` so the detail sheet doesn't show the mechanisms-only "More training
-  designs ↗" text — see `deeplinkLabel` above.
+  `baby-sharks-l2-driving` (BP3, BP4 → `#page=9`, L2 Basic movement),
+  `baby-sharks-l5-sensors` (BP7 → `#page=15`, L5 Sensors), and
+  `baby-sharks-l5-5-reliability` (BP5, BP9 → `#page=19`, L5.5 Robot consistency).
+  Each sets `deeplinkLabel: 'Baby Sharks lesson ↗'` so the detail sheet doesn't
+  show the mechanisms-only "More training designs ↗" text — see `deeplinkLabel`
+  above. Their page anchors must stay in step with `BABY_SHARKS_LESSON_INDEX`.
 - **`baby-sharks-python`** and **`baby-sharks-engineering`** are optional, **not
-  FLL season content**. They carry `topics: []` so they never appear in a topic
-  band or read as part of the season skill path; they only surface in the Resource
-  Library's **"Extra Learning (Optional)"** section (`EXTRA_LEARNING_IDS` /
-  `extraLearningResources()`), clearly labeled as extra, not required.
+  FLL season content**. They now appear on the home page alongside the season
+  course (the teams asked for all three in one place), but they keep `topics: []`
+  so they never enter a topic band, they are excluded from the Build & Programming
+  tab, and they carry the `badge: 'Optional — not FLL'` chip — styled grey
+  (`.chip--optional`), deliberately not green or gold, so they cannot read as part
+  of the season skill path. They also still surface in the Resource Library's
+  **"Extra Learning (Optional)"** section (`EXTRA_LEARNING_IDS` /
+  `extraLearningResources()`).
 - `ATTRIBUTION` (shown on every page that already credits PrimeLessons / FLL
   Tutorials) now also credits Baby Sharks / Team 33574 for all three courses. A
   short feedback line — "Our teams are giving feedback on these courses" — with a
-  link to `BABY_SHARKS_FEEDBACK_URL` appears next to the featured course in Build
-  & Programming and again in the Extra Learning section (the Ripple Effect page
-  has the feedback form embedded on it; there is no separate form URL).
+  link to `BABY_SHARKS_FEEDBACK_URL` appears once under the courses home block,
+  again in Build & Programming, and again in the Extra Learning section (the
+  Ripple Effect page has the feedback form embedded on it; no separate form URL).
 - **Fallback / verify-link status:** the three PDF URLs are hosted on a Wix
-  "premium files" bucket (`09e0be48-...filesusr.com`) that blocks automated
-  fetching, so curl, headless fetch, and in-browser navigation from a build
-  environment will all fail on them even while the links are good — that bucket
-  rejected every automated fetch attempted on 2026-08-14 (curl TLS handshake
-  failure, a headless fetch tool, and in-browser navigation all failed to
-  connect) while unrelated paths on `wixsite.com` / `wixstatic.com` succeeded,
-  consistent with datacenter-IP bot protection, not a dead file. **Do not treat a
-  failed automated check on these three URLs as a dead link, and do not fall back
-  to the Ripple Effect page** (`https://team33574.wixsite.com/baby-sharks/blank-2`)
-  — that would collapse all three distinct courses onto one generic destination.
-  Verify them by opening them in a normal browser instead. Last confirmed working:
-  2026-08-14.
+  "premium files" bucket (`09e0be48-...filesusr.com`) whose bot protection
+  rejects a **default** curl/headless user agent — but it serves normally to a
+  **browser** user agent. `curl -A '<browser UA>' <url>` returned all three PDFs
+  in full on 2026-08-20 (52 / 37 / 67 pages), which is also how the lesson-index
+  page numbers were read. So **do not treat a failed automated check on these
+  three URLs as a dead link** — retry with a browser UA first — and **do not fall
+  back to the Ripple Effect page** (`https://team33574.wixsite.com/baby-sharks/blank-2`),
+  which would collapse three distinct courses onto one generic destination.
+  Last confirmed working: 2026-08-20.
 
 ## Tour + session check-in
 
@@ -390,19 +406,29 @@ their PDF content into this app.
 
 ## Home-page primary blocks
 
-Two **`.homeblock`** sections sit in `app__main` directly under the build bar and
-**above the category tabs**, so neither can be scrolled past: the Baby Sharks
-training course and the official FIRST season documents. They share one chrome —
-black head with a gold kicker, white body — which is deliberately a tier between
-the solid-gold `.build-bar` action bar above them and the slim outlined
-`.library-bar` / `.setup-bar` below. Order inside `app__main` is: build bar →
-Baby Sharks → season documents → setup bar → library bar → `Hub` (tabs).
+Three primary entry points sit at the top of `app__main`, **above the category
+tabs**, so none can be scrolled past. **The order is the teams' explicit
+call — do not reshuffle it without asking:**
 
-Both block heads clear the fold on a phone (measured at 394×854: heads end at
-417px and 739px) and on an iPad (768×1024: 374px and 660px). That budget is
-tight because the header + progress bar + build bar already consume ~395px, so
-**anything added above the tabs has to earn its height** — keep the collapsed
-height of these blocks down, and re-measure if you add a third.
+1. **Official FIRST season documents** (`.homeblock`)
+2. **Build the Competition Bot** (`.build-bar`)
+3. **Baby Sharks free courses** (`.homeblock`)
+
+then setup bar → library bar → `Hub` (tabs). The two `.homeblock` sections share
+one chrome — black head with a gold kicker, white body — deliberately a tier
+apart from the solid-gold `.build-bar` between them and the slim outlined
+`.library-bar` / `.setup-bar` below.
+
+**Height budget.** The header + progress bar already cost ~190px, and the season
+documents block leads, so the stack is tight. Measured collapsed at 394×854:
+season docs 188→840 (fills the first screen), build bar starts at 856, courses at
+1031. On an iPad (768×1024) all three start above the fold (205 / 747 / 863). So
+on a phone **only the first block is fully above the fold** — that is the
+arithmetic cost of leading with the tallest block, and it is accepted. Both
+blocks were compacted to get here: Tier 2 docs live behind ONE outer fold (not
+six), and `.course__blurb` is line-clamped to 2. **Anything added above the tabs
+has to earn its height** — re-measure if you add or expand a block. The next
+lever, if more is needed, is demoting the build bar or trimming Tier 1.
 
 ### Official FIRST season documents
 
@@ -425,11 +451,14 @@ intermediate landing page, never a "go to the FIRST website" step.
   `{ id, title, url, kind, note?, warn? }` where `kind` is `'pdf' | 'web' |
   'video'`.
 - **Tier 1** (always visible, no expand): Robot Game Rulebook, the interactive
-  rulebook, Challenge Updates, Engineering Notebook. **Tier 2** is six
-  per-heading `<details>` groups: rules and participation, judging and awards,
-  field and table setup, mission model building instructions (Element Overview,
-  Prepack Overview, and Models 1–13 — generated from the URL pattern by
-  `MODEL_BOOKS` so the two-digit zero padding can't drift), scoring, and videos.
+  rulebook, Challenge Updates, Engineering Notebook. **Tier 2** sits behind ONE
+  outer fold ("More season documents"), which contains six per-heading
+  `<details>` groups: rules and participation, judging and awards, field and
+  table setup, mission model building instructions (Element Overview, Prepack
+  Overview, and Models 1–13 — generated from the URL pattern by `MODEL_BOOKS` so
+  the two-digit zero padding can't drift), scoring, and videos. The outer fold
+  exists for the height budget above: six always-visible group headers cost
+  ~300px, and everything below this block pays for it.
 - **Challenge Updates gets an alert treatment, not just a list position**
   (`warn` on the doc → `.docrow--warn`, gold on gold-pale). It carries rule
   **corrections that override the Rulebook**, and **FIRST revises it during the

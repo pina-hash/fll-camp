@@ -180,9 +180,13 @@ export default function App() {
       </div>
 
       <main className="app__main">
-        {/* THE action item this season, so it is the first and loudest thing on
-            the hub — above the session bar, above the tabs, not dismissible.
-            Demote it to a normal bar once every team has built the bot. */}
+        {/* Primary blocks, in the order the teams asked for: the official season
+            documents, then the build action item, then the training courses. All
+            three sit above the session/library bars and above the category tabs.
+            The build bar stays not-dismissible; demote it once every team has
+            built the bot. */}
+        <SeasonDocuments />
+
         <button
           type="button"
           className="build-bar"
@@ -199,13 +203,11 @@ export default function App() {
           <span className="build-bar__go" aria-hidden="true">→</span>
         </button>
 
-        {/* The two primary reference blocks, above the category tabs so neither
-            can be scrolled past. Both are .homeblock (black head, white body) so
-            they read as one tier apart from the gold action bars above and the
-            slim outlined bars below. The Baby Sharks course also still renders
-            inline in Build & Programming — SAME component, same data. */}
+        {/* .homeblock (black head, white body) reads as one tier apart from the
+            gold build bar above and the slim outlined bars below. The Baby Sharks
+            courses also still render inline in Build & Programming — SAME
+            component, same data source. */}
         <BabySharksCourse variant="home" />
-        <SeasonDocuments />
 
         {showSetupBar && (
           <div className="setup-bar">
